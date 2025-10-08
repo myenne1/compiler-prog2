@@ -1,0 +1,23 @@
+# Ignore Visual Studio Code specific files
+.vscode/
+
+# Ignore compiled object files
+*.o
+*.obj
+
+# Ignore compiled executables
+*.exe
+*.out
+*.app
+
+# Ignore compiled static libraries
+*.a
+*.lib
+
+# Ignore compiled shared libraries
+*.so
+*.dll
+
+# Ignore build directories
+build/
+bin/
