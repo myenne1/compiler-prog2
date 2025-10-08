@@ -1,0 +1,61 @@
+package Parse;
+
+action code {: static Symbol.Symbol sym(String s) {
+	         return Symbol.Symbol.symbol(s);
+	        }
+	    :};
+
+parser code  {: 
+  Lexer lexer;
+
+  public void syntax_error(java_cup.runtime.Symbol current) {
+   report_error("Syntax error (" + current.sym + ")", current);
+  }
+
+  ErrorMsg.ErrorMsg errorMsg;
+
+  public void report_error(String message, java_cup.runtime.Symbol info) {
+      errorMsg.error(info.left, message);
+  }
+
+  public Grm(Lexer l, ErrorMsg.ErrorMsg err) {
+    this();
+    errorMsg=err;
+    lexer=l;
+  }
+:};
+
+scan with {: return lexer.nextToken(); :};
+
+terminal String ID, STRING_LITERAL;
+terminal Integer DECIMAL_LITERAL;
+terminal char CHAR_LITERAL;
+terminal INT, COMMA, COLON, SEMICOLON, LPAREN, RPAREN, LBRACK, RBRACK,
+
+	LBRACE, RBRACE, PLUS, MINUS, TIMES, DIVIDE, EQ, NEQ, LT, LE,
+	GT, GE, AND, OR, ASSIGN, IF, ELSE, WHILE, FOR,
+	DO, BREAK, FUN, VAR, VOLATILE,
+    REGISTER, CONTINUE, TYPEDEF,
+    STRUCT, STATIC, SIZEOF, RETURN, EXTERN, DOUBLE,
+    UNION, SHORT, FLOAT, CONST, VOID, LONG, GOTO, ENUM,
+    CHAR, AUTO, RSHIFTASSIGN, LSHIFTASSIGN, ELIPSES, BWISEORASSIGN,
+    BWISEXORASSIGN, RSHIFT, LSHIFT, DIVASSIGN, ARROW, SUBASSIGN, DECREMENT,
+    ADDASSIGN, INCREMENT, MULASSIGN, BWISEANDASSIGN, MODASSIGN, TILDE,
+    BWISEOR, BWISEXOR, PERIOD, BITWISEAND,
+    MODULUS;
+
+non terminal Absyn.Exp          Exp;
+non terminal Absyn.Var          Var;
+
+start with Exp;
+
+Exp ::= error:e
+	  {: RESULT = new Absyn.SeqExp(eleft, null); :}
+	| Var:v
+	  {: RESULT = new Absyn.VarExp(vleft, v); :}
+	;
+
+Var ::=   ID:n
+	  {: RESULT = new Absyn.SimpleVar(nleft, sym(n)); :}
+	;
+
