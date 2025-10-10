@@ -1,32 +1,38 @@
 package Parse;
 
-action code {: static Symbol.Symbol sym(String s) {
-	         return Symbol.Symbol.symbol(s);
-	        }
-	    :};
+import Symbol.*;
+import Absyn.*;
+
+action code {: 
+    static Symbol sym(String s) {
+        return Symbol.symbol(s);
+    }
+:};
 
 parser code  {: 
   Lexer lexer;
-
-  public void syntax_error(java_cup.runtime.Symbol current) {
-   report_error("Syntax error (" + current.sym + ")", current);
-  }
-
   ErrorMsg.ErrorMsg errorMsg;
 
+  public void syntax_error(java_cup.runtime.Symbol current) {
+    report_error("Syntax error (" + current.sym + ")", current);
+  }
+
   public void report_error(String message, java_cup.runtime.Symbol info) {
-      errorMsg.error(info.left, message);
+    errorMsg.error(info.left, message);
   }
 
   public Grm(Lexer l, ErrorMsg.ErrorMsg err) {
     this();
-    errorMsg=err;
-    lexer=l;
+    errorMsg = err;
+    lexer = l;
   }
 :};
 
 scan with {: return lexer.nextToken(); :};
 
+// -------------------
+// Terminals
+// -------------------
 terminal String ID, STRING_LITERAL;
 terminal Integer DECIMAL_LITERAL;
 terminal char CHAR_LITERAL;
@@ -41,21 +47,246 @@ terminal INT, COMMA, COLON, SEMICOLON, LPAREN, RPAREN, LBRACK, RBRACK,
     CHAR, AUTO, RSHIFTASSIGN, LSHIFTASSIGN, ELIPSES, BWISEORASSIGN,
     BWISEXORASSIGN, RSHIFT, LSHIFT, DIVASSIGN, ARROW, SUBASSIGN, DECREMENT,
     ADDASSIGN, INCREMENT, MULASSIGN, BWISEANDASSIGN, MODASSIGN, TILDE,
-    BWISEOR, BWISEXOR, PERIOD, BITWISEAND,
-    MODULUS, CASE, NOT, HASH, MOD, BITAND, DOT, SEMI, QUESTION, BITXOR, BITOR, BITNOT, ANDAND, INC, DEC, OROR, SIGNED, SWITCH, DEFAULT, UNSIGNED;
+    BWISEOR, BWISEXOR, PERIOD, BWISEAND, BWISENOT,
+    MODULUS, CASE, DEFAULT, SIGNED, SWITCH, UNSIGNED, ANDAND, OROR, NOT, QUESTION, HASH, DOT;
 
-non terminal Absyn.Exp          Exp;
-non terminal Absyn.Var          Var;
+// -------------------
+// Non-terminals
+// -------------------
+non terminal Absyn.Exp Exp;
+non terminal Absyn.Var Var;
+non terminal Absyn.Exp primary_expression, postfix_expression, unary_expression,
+    cast_expression, multiplicative_expression, additive_expression,
+    shift_expression, relational_expression, equality_expression,
+    and_expression, exclusive_or_expression, inclusive_or_expression,
+    logical_and_expression, logical_or_expression,
+    conditional_expression, assignment_expression, expression;
+non terminal Absyn.Exp argument_expression_list, argument_expression_list_opt;
+non terminal Object assignment_operator, unary_operator, type_name;
 
 start with Exp;
 
+// -------------------
+// Grammar Rules
+// -------------------
+
 Exp ::= error:e
-	  {: RESULT = new Absyn.SeqExp(eleft, null); :}
-	| Var:v
-	  {: RESULT = new Absyn.VarExp(vleft, v); :}
-	;
+      {: RESULT = new Absyn.SeqExp(eleft, null); :}
+    | Var:v
+      {: RESULT = new Absyn.VarExp(vleft, v); :}
+    ;
 
-Var ::=   ID:n
-	  {: RESULT = new Absyn.SimpleVar(nleft, sym(n)); :}
-	;
+Var ::= ID:n
+      {: RESULT = new Absyn.SimpleVar(nleft, sym(n)); :}
+    ;
 
+  // -------------- Primary -----------------
+primary_expression ::=
+      ID
+        {: RESULT = null; :}
+    | DECIMAL_LITERAL
+        {: RESULT = null; :}
+    | CHAR_LITERAL
+        {: RESULT = null; :}
+    | STRING_LITERAL
+        {: RESULT = null; :}
+    | LPAREN expression RPAREN
+        {: RESULT = $2; :}
+    ;
+
+// -------------- Postfix -----------------
+postfix_expression ::=
+      primary_expression
+        {: RESULT = $1; :}
+    | postfix_expression LBRACK expression RBRACK
+        {: RESULT = null; :}
+    | postfix_expression LPAREN argument_expression_list_opt RPAREN
+        {: RESULT = null; :}
+    | postfix_expression DOT ID
+        {: RESULT = null; :}
+    | postfix_expression ARROW ID
+        {: RESULT = null; :}
+    | postfix_expression INCREMENT
+        {: RESULT = null; :}
+    | postfix_expression DECREMENT
+        {: RESULT = null; :}
+    ;
+
+// -------------- Argument List -----------------
+argument_expression_list_opt ::=
+      /* empty */
+        {: RESULT = null; :}
+    | argument_expression_list
+        {: RESULT = $1; :}
+    ;
+
+argument_expression_list ::=
+      assignment_expression
+        {: RESULT = $1; :}
+    | argument_expression_list COMMA assignment_expression
+        {: RESULT = null; :}
+    ;
+
+// -------------- Unary -----------------
+unary_expression ::=
+      postfix_expression
+        {: RESULT = $1; :}
+    | INCREMENT unary_expression
+        {: RESULT = null; :}
+    | DECREMENT unary_expression
+        {: RESULT = null; :}
+    | unary_operator cast_expression
+        {: RESULT = null; :}
+    | SIZEOF unary_expression
+        {: RESULT = null; :}
+    | SIZEOF LPAREN type_name RPAREN
+        {: RESULT = null; :}
+    ;
+
+unary_operator ::=
+      AND
+    | TIMES
+    | PLUS
+    | MINUS
+    | TILDE
+    | NOT
+    ;
+
+// -------------- Cast -----------------
+cast_expression ::=
+      unary_expression
+        {: RESULT = $1; :}
+    | LPAREN type_name RPAREN cast_expression
+        {: RESULT = null; :}
+    ;
+
+// -------------- Multiplicative -----------------
+multiplicative_expression ::=
+      cast_expression
+        {: RESULT = $1; :}
+    | multiplicative_expression TIMES cast_expression
+        {: RESULT = null; :}
+    | multiplicative_expression DIVIDE cast_expression
+        {: RESULT = null; :}
+    | multiplicative_expression MODULUS cast_expression
+        {: RESULT = null; :};
+
+
+// -------------- Additive -----------------
+additive_expression ::=
+      multiplicative_expression
+        {: RESULT = $1; :}
+    | additive_expression PLUS multiplicative_expression
+        {: RESULT = null; :}
+    | additive_expression MINUS multiplicative_expression
+        {: RESULT = null; :}
+    ;
+
+// -------------- Shift -----------------
+shift_expression ::=
+      additive_expression
+        {: RESULT = $1; :}
+    | shift_expression LSHIFT additive_expression
+        {: RESULT = null; :}
+    | shift_expression RSHIFT additive_expression
+        {: RESULT = null; :}
+    ;
+
+// -------------- Relational -----------------
+relational_expression ::=
+      shift_expression
+        {: RESULT = $1; :}
+    | relational_expression LT shift_expression
+        {: RESULT = null; :}
+    | relational_expression GT shift_expression
+        {: RESULT = null; :}
+    | relational_expression LE shift_expression
+        {: RESULT = null; :}
+    | relational_expression GE shift_expression
+        {: RESULT = null; :}
+    ;
+
+// -------------- Equality -----------------
+equality_expression ::=
+      relational_expression
+        {: RESULT = $1; :}
+    | equality_expression EQ relational_expression
+        {: RESULT = null; :}
+    | equality_expression NEQ relational_expression
+        {: RESULT = null; :}
+    ;
+
+// -------------- Bitwise AND / XOR / OR -----------------
+and_expression ::=
+      equality_expression
+        {: RESULT = $1; :}
+    | and_expression BWISEAND equality_expression
+        {: RESULT = null; :}
+    ;
+
+exclusive_or_expression ::=
+      and_expression
+        {: RESULT = $1; :}
+    | exclusive_or_expression BWISEXOR and_expression
+        {: RESULT = null; :}
+    ;
+
+inclusive_or_expression ::=
+      exclusive_or_expression
+        {: RESULT = $1; :}
+    | inclusive_or_expression BWISEOR exclusive_or_expression
+        {: RESULT = null; :}
+    ;
+
+// -------------- Logical AND / OR -----------------
+logical_and_expression ::=
+      inclusive_or_expression
+        {: RESULT = $1; :}
+    | logical_and_expression ANDAND inclusive_or_expression
+        {: RESULT = null; :}
+    ;
+
+logical_or_expression ::=
+      logical_and_expression
+        {: RESULT = $1; :}
+    | logical_or_expression OROR logical_and_expression
+        {: RESULT = null; :}
+    ;
+
+// -------------- Conditional ( ?: ) -----------------
+conditional_expression ::=
+      logical_or_expression
+        {: RESULT = $1; :}
+    | logical_or_expression QUESTION expression COLON conditional_expression
+        {: RESULT = null; :}
+    ;
+
+// -------------- Assignment -----------------
+assignment_expression ::=
+      conditional_expression
+        {: RESULT = $1; :}
+    | unary_expression assignment_operator assignment_expression
+        {: RESULT = null; :}
+    ;
+
+assignment_operator ::=
+      ASSIGN
+    | MULASSIGN
+    | DIVASSIGN
+    | MODASSIGN
+    | ADDASSIGN
+    | SUBASSIGN
+    | LSHIFTASSIGN
+    | RSHIFTASSIGN
+    | BWISEANDASSIGN
+    | BWISEXORASSIGN
+    | BWISEORASSIGN
+    ;
+
+// -------------- Expression (comma-separated) -----------------
+expression ::=
+      assignment_expression
+        {: RESULT = $1; :}
+    | expression COMMA assignment_expression
+        {: RESULT = null; :}
+    ;

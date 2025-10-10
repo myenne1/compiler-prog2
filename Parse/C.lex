@@ -91,8 +91,8 @@ Yylex(java.io.InputStream s, ErrorMsg e) {
 \'([^\\\n]|(\\.))\'        { return tok(sym.CHAR_LITERAL, yytext()); }
 \"([^\\\n]|(\\.))*\"        { return tok(sym.STRING_LITERAL, yytext()); }
 
-"++"    { return tok(sym.INC, yytext()); }
-"--"    { return tok(sym.DEC, yytext()); }
+"++"    { return tok(sym.INCREMENT, yytext()); }
+"--"    { return tok(sym.DECREMENT, yytext()); }
 "=="    { return tok(sym.EQ, yytext()); }
 "!="    { return tok(sym.NEQ, yytext()); }
 "<="    { return tok(sym.LE, yytext()); }
@@ -105,17 +105,17 @@ Yylex(java.io.InputStream s, ErrorMsg e) {
 "-"     { return tok(sym.MINUS, yytext()); }
 "*"     { return tok(sym.TIMES, yytext()); }
 "/"     { return tok(sym.DIVIDE, yytext()); }
-"%"     { return tok(sym.MOD, yytext()); }
+"%"     { return tok(sym.MODULUS, yytext()); }
 "="     { return tok(sym.ASSIGN, yytext()); }
 "<"     { return tok(sym.LT, yytext()); }
 ">"     { return tok(sym.GT, yytext()); }
 "!"     { return tok(sym.NOT, yytext()); }
-"&"     { return tok(sym.BITAND, yytext()); }
-"|"     { return tok(sym.BITOR, yytext()); }
-"^"     { return tok(sym.BITXOR, yytext()); }
-"~"     { return tok(sym.BITNOT, yytext()); }
+"&"     { return tok(sym.BWISEAND, yytext()); }
+"|"     { return tok(sym.BWISEOR, yytext()); }
+"^"     { return tok(sym.BWISEXOR, yytext()); }
+"~"     { return tok(sym.BWISENOT, yytext()); }
 
-";"  { return tok(sym.SEMI, null); }
+";"  { return tok(sym.SEMICOLON, null); }
 ","  { return tok(sym.COMMA, null); }
 "."  { return tok(sym.DOT, null); }
 ":"  { return tok(sym.COLON, null); }
