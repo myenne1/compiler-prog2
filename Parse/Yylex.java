@@ -532,11 +532,11 @@ private int [][] unpackFromString(int size1, int size2, String st)
 					case -6:
 						break;
 					case 6:
-						{ return tok(sym.MOD, yytext()); }
+						{ return tok(sym.MODULUS, yytext()); }
 					case -7:
 						break;
 					case 7:
-						{ return tok(sym.BITAND, yytext()); }
+						{ return tok(sym.BWISEAND, yytext()); }
 					case -8:
 						break;
 					case 8:
@@ -580,7 +580,7 @@ private int [][] unpackFromString(int size1, int size2, String st)
 					case -18:
 						break;
 					case 18:
-						{ return tok(sym.SEMI, null); }
+						{ return tok(sym.SEMICOLON, null); }
 					case -19:
 						break;
 					case 19:
@@ -612,7 +612,7 @@ private int [][] unpackFromString(int size1, int size2, String st)
 					case -26:
 						break;
 					case 26:
-						{ return tok(sym.BITXOR, yytext()); }
+						{ return tok(sym.BWISEXOR, yytext()); }
 					case -27:
 						break;
 					case 27:
@@ -620,7 +620,7 @@ private int [][] unpackFromString(int size1, int size2, String st)
 					case -28:
 						break;
 					case 28:
-						{ return tok(sym.BITOR, yytext()); }
+						{ return tok(sym.BWISEOR, yytext()); }
 					case -29:
 						break;
 					case 29:
@@ -628,7 +628,7 @@ private int [][] unpackFromString(int size1, int size2, String st)
 					case -30:
 						break;
 					case 30:
-						{ return tok(sym.BITNOT, yytext()); }
+						{ return tok(sym.BWISENOT, yytext()); }
 					case -31:
 						break;
 					case 31:
@@ -644,11 +644,11 @@ private int [][] unpackFromString(int size1, int size2, String st)
 					case -34:
 						break;
 					case 34:
-						{ return tok(sym.INC, yytext()); }
+						{ return tok(sym.INCREMENT, yytext()); }
 					case -35:
 						break;
 					case 35:
-						{ return tok(sym.DEC, yytext()); }
+						{ return tok(sym.DECREMENT, yytext()); }
 					case -36:
 						break;
 					case 36:
