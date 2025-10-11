@@ -31,7 +31,7 @@ public class Print {
     say("SimpleVar("); say(v.name.toString()); say(")");
   }
   
-  void prVar(FieldVar v, int d) {
+  void prVar(DotVar v, int d) {
     sayln("FieldVar(");
     prVar(v.var, d+1); sayln(",");
     indent(d+1); say(v.field.toString()); say(")");
@@ -47,7 +47,7 @@ public class Print {
   void prVar(Var v, int d) {
     indent(d);
     if (v instanceof SimpleVar) prVar((SimpleVar) v, d);
-    else if (v instanceof FieldVar) prVar((FieldVar) v, d);
+    else if (v instanceof DotVar) prVar((DotVar) v, d);
     else if (v instanceof SubscriptVar) prVar((SubscriptVar) v, d);
     else throw new Error("Print.prVar");
   }
