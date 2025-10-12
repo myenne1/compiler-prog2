@@ -2,6 +2,7 @@ package Parse;
 
 import Symbol.*;
 import java.util.ArrayList;
+import java.util.List;
 
 action code {: 
     static Symbol sym(String s) {
@@ -35,7 +36,7 @@ scan with {: return lexer.nextToken(); :};
 // -------------------
 terminal String ID, STRING_LITERAL;
 terminal Integer DECIMAL_LITERAL;
-terminal char CHAR_LITERAL;
+terminal Character CHAR_LITERAL;
 terminal INT, COMMA, COLON, SEMICOLON, LPAREN, RPAREN, LBRACK, RBRACK,
 	LBRACE, RBRACE, PLUS, MINUS, TIMES, DIVIDE, EQ, NEQ, LT, LE,
 	GT, GE, AND, OR, ASSIGN, IF, ELSE, WHILE, FOR,
@@ -59,18 +60,29 @@ non terminal Absyn.Exp primary_expression, postfix_expression, unary_expression,
     and_expression, exclusive_or_expression, inclusive_or_expression,
     logical_and_expression, logical_or_expression,
     conditional_expression, assignment_expression, expression;
-non terminal Absyn.Exp argument_expression_list, argument_expression_list_opt;
-non terminal Object assignment_operator, unary_operator, type_name;
-non terminal Absyn.Decl declaration;
+non terminal java.util.List argument_expression_list, argument_expression_list_opt;
+non terminal Object ;
+non terminal Absyn.Dec declaration;
 non terminal Absyn.Type type;
-non terminal Absyn.BitfieldList bitfield_list;
+non terminal java.util.List bitfield_list;
+non terminal String bitfield;
 
-non terminal Absyn.Initialization initialization;
-non terminal Absyn.ParamList parameters;
-non terminal Absyn.Stmt compound_statement;
+non terminal Absyn.Type type_name;
+non terminal String unary_operator;
+non terminal String assignment_operator;
 
-non terminal Absyn.TypeAugments type_augments;
-non terminal Absyn.TypeAugment type_augment;
+non terminal Absyn.Exp initialization;
+non terminal java.util.List parameters;
+non terminal Absyn.CompoundStmt compound_statement;
+
+non terminal java.util.List type_augments;
+non terminal Absyn.Type type_augment;
+
+non terminal java.util.List declaration_list;
+non terminal java.util.List statement_list;
+non terminal Absyn.Param parameter;
+non terminal java.util.List parameter_list;
+non terminal Absyn.Stmt statement;
 
 start with Exp;
 
@@ -95,29 +107,29 @@ primary_expression ::= ID:n {: RESULT = new Absyn.VarExp(nleft, new Absyn.Simple
     | DECIMAL_LITERAL:n {: RESULT = new Absyn.IntExp(nleft, n); :}
     | CHAR_LITERAL:c {: RESULT = new Absyn.CharExp(cleft, c); :}
     | STRING_LITERAL:s {: RESULT = new Absyn.StrExp(sleft, s); :}
-    | LPAREN expression RPAREN {: RESULT = $2; :}
+    | LPAREN expression:e RPAREN {: RESULT = e; :}
     ;
 
 // ------------------ Postfix ------------------
-postfix_expression ::= primary_expression 
-    {: RESULT = $1; :}
-    | postfix_expression LBRACK expression RBRACK 
-        {: RESULT = $2; :} // TODO: implement ArrayAccessExp or similar
-    | postfix_expression DOT ID:n 
-        {: RESULT = new Absyn.VarExp(nleft, new Absyn.DotVar(nleft, ((Absyn.VarExp)$1).var, sym(n))); :}
-    | postfix_expression ARROW ID:n 
-        {: RESULT = new Absyn.VarExp(nleft, new Absyn.ArrowVar(nleft, ((Absyn.VarExp)$1).var, sym(n))); :}
-    | postfix_expression INCREMENT:n 
-        {: RESULT = new Absyn.PostIncExp(nleft, ((Absyn.VarExp)$1).var); :}
-    | postfix_expression DECREMENT:n 
-        {: RESULT = new Absyn.PostDecExp(nleft, ((Absyn.VarExp)$1).var); :}
+postfix_expression ::= primary_expression:e
+    {: RESULT = e; :}
+    | postfix_expression:p LBRACK expression:e RBRACK 
+        {: RESULT = new Absyn.ArrayAccessExp(pleft, ((Absyn.VarExp)p).var, e); :}
+    | postfix_expression:e DOT ID:n 
+        {: RESULT = new Absyn.VarExp(nleft, new Absyn.DotVar(nleft, ((Absyn.VarExp)e).var, sym(n))); :}
+    | postfix_expression:e ARROW ID:n 
+        {: RESULT = new Absyn.VarExp(nleft, new Absyn.ArrowVar(nleft, ((Absyn.VarExp)e).var, sym(n))); :}
+    | postfix_expression:e INCREMENT:n 
+        {: RESULT = new Absyn.PostIncExp(nleft, ((Absyn.VarExp)e).var); :}
+    | postfix_expression:e DECREMENT:n 
+        {: RESULT = new Absyn.PostDecExp(nleft, ((Absyn.VarExp)e).var); :}
     | postfix_expression:p LPAREN argument_expression_list_opt:a RPAREN 
         {: RESULT = new Absyn.FuncCallExp(pleft, ((Absyn.VarExp)p).var, a == null ? new java.util.ArrayList<>() : a); :}
     ;
 
 // -------------- Argument List -----------------
 argument_expression_list_opt ::= /* empty */ {: RESULT = null; :}
-    | argument_expression_list {: RESULT = $1; :}
+    | argument_expression_list:e {: RESULT = e; :}
     ;
 
 argument_expression_list ::= assignment_expression:e 
@@ -134,41 +146,150 @@ argument_expression_list ::= assignment_expression:e
     ;
 
 // -------------- Declaration & Bitfield -----------------
-declaration ::= VAR bitfield_list type ID initialization SEMICOLON {: RESULT = null; :}
-    | FUN bitfield_list type ID parameters compound_statement {: RESULT = null; :}
+declaration ::= VAR bitfield_list:n type:t ID:d initialization:i SEMICOLON {: RESULT = new Absyn.VarDec(nleft, n, t, sym(d), i); :}
+    | FUN bitfield_list:n type:t ID:d parameters:p compound_statement:c {: RESULT = new Absyn.FunctionDec(nleft, n, t, sym(d), p, c); :}
     ;
 
+bitfield ::= STATIC   {: RESULT = "static"; :}
+           | VOLATILE {: RESULT = "volatile"; :}
+           | CONST    {: RESULT = "const"; :}
+           | EXTERN   {: RESULT = "extern"; :}
+           | REGISTER {: RESULT = "register"; :}
+           ;
+
+bitfield_list ::= /* empty */
+    {: RESULT = new ArrayList<String>(); :}
+    |
+    bitfield_list:l bitfield:b
+    {: 
+        l.add(b);
+        RESULT = l;
+    :}
+    ;
+
+
 initialization ::= /* empty */ {: RESULT = null; :}
-                 | ASSIGN expression {: RESULT = null; :}
+                 | ASSIGN expression:e {: RESULT = e; :}
                  ;
 
-parameters ::= LPAREN RPAREN {: RESULT = null; :}
-            | LPAREN expression RPAREN {: RESULT = null; :}
+parameters ::= LPAREN RPAREN {: RESULT = new ArrayList<Absyn.Param>(); :}
+            | LPAREN parameter_list:p RPAREN {: RESULT = p; :}
             ;
 
-compound_statement ::= LBRACE RBRACE {: RESULT = null; :};
-
-
-
-type ::= type_name {: RESULT = null; :}
-       | type_name type_augments {: RESULT = null; :}
-       ;
-
-type_augments ::= type_augment {: RESULT = null; :}
-                | type_augments type_augment {: RESULT = null; :}
+parameter_list ::= parameter:p
+                 {: 
+                    ArrayList<Absyn.Param> list = new ArrayList<>();
+                    list.add(p);
+                    RESULT = list;
+                 :}
+                | parameter_list:l COMMA parameter:p
+                 {: 
+                    l.add(p);
+                    RESULT = l;
+                 :}
                 ;
 
-type_augment ::= TIMES {: RESULT = null; :}
-               | LBRACK RBRACK {: RESULT = null; :}
-               | LBRACK expression RBRACK {: RESULT = null; :}
+parameter ::= bitfield_list:b type:t ID:n {: RESULT = new Absyn.Param(nleft, b, t, sym(n)); :};
+
+compound_statement ::= LBRACE declaration_list:d statement_list:s RBRACE {: RESULT = new Absyn.CompoundStmt(dleft, d, s); :};
+
+declaration_list ::= /* empty */ {: RESULT = new ArrayList<Absyn.Dec>(); :}
+                | declaration_list:l declaration:d 
+                {:
+                    l.add(d);
+                    RESULT = l;
+                :}
+                ;
+
+statement_list ::= /* empty */ {: RESULT = new ArrayList<Absyn.Stmt>(); :}
+                | statement_list:l statement:s 
+                {:
+                    l.add(s);
+                    RESULT = l;
+                :}
+                ;
+
+statement ::= expression:e SEMICOLON
+             {: RESULT = new Absyn.ExprStmt(eleft, e); :}
+
+           | compound_statement:c
+             {: RESULT = c; :}
+
+           | RETURN expression:e SEMICOLON
+             {: RESULT = new Absyn.ReturnStmt(eleft, e); :}
+
+           | IF LPAREN expression:cond RPAREN statement:thenPart
+             {: RESULT = new Absyn.IfStmt(condleft, cond, thenPart, null); :}
+
+           | IF LPAREN expression:cond RPAREN statement:thenPart ELSE statement:elsePart
+             {: RESULT = new Absyn.IfStmt(condleft, cond, thenPart, elsePart); :}
+
+           | WHILE LPAREN expression:cond RPAREN statement:body
+             {: RESULT = new Absyn.WhileStmt(condleft, cond, body); :}
+
+           | BREAK:b SEMICOLON
+             {: RESULT = new Absyn.BreakStmt(bleft); :}
+
+           | CONTINUE:c SEMICOLON
+             {: RESULT = new Absyn.ContinueStmt(cleft); :}
+
+           | FOR LPAREN expression:e1 SEMICOLON expression:e2 SEMICOLON expression:e3 RPAREN statement:s
+                {: RESULT = new Absyn.ForStmt(e1left, e1, e2, e3, s); :}
+
+           | DO statement:s WHILE LPAREN expression:e RPAREN SEMICOLON
+                {: RESULT = new Absyn.DoWhileStmt(sleft, s, e); :}
+           ;
+
+type ::= type_name:t {: RESULT = t; :}
+       | type_name:t type_augments:a
+        {: 
+            Absyn.Type base = t;
+            for (int i = a.size() - 1; i >= 0; i--) {
+                Absyn.Type augment = (Absyn.Type)a.get(i);
+
+                if (augment instanceof Absyn.PointerType) {
+                    ((Absyn.PointerType)augment).baseType = base;
+                } else if (augment instanceof Absyn.ArrayType) {
+                    ((Absyn.ArrayType)augment).baseType = base;
+                }
+                base = augment;
+            }
+            RESULT = base;
+        :}
+       ;
+
+type_name ::= INT:t {: RESULT = new Absyn.TypeName(tleft, "int"); :}
+            | CHAR:t {: RESULT = new Absyn.TypeName(tleft, "char"); :}
+            | VOID:t {: RESULT = new Absyn.TypeName(tleft, "void"); :}
+            ;
+
+type_augments ::= type_augment:t
+                {: 
+                    ArrayList<Absyn.Type> list = new ArrayList<>();
+                    list.add(t);
+                    RESULT = list;
+                :}
+                | type_augments:l type_augment:t
+                {: 
+                    l.add(t);
+                    RESULT = l;
+                :}
+                ;
+
+type_augment ::= TIMES:t
+               {: RESULT = new Absyn.PointerType(tleft); :}
+               | LBRACK:t RBRACK
+               {: RESULT = new Absyn.ArrayType(tleft, null); :}
+               | LBRACK:t expression:e RBRACK
+               {: RESULT = new Absyn.ArrayType(tleft, e); :}
                ;
 
 // -------------- Unary -----------------
-unary_expression ::= postfix_expression {: RESULT = $1; :}
-    | INCREMENT unary_expression {: RESULT = null; :}
-    | DECREMENT unary_expression {: RESULT = null; :}
-    | unary_operator cast_expression {: RESULT = null; :}
-    | SIZEOF LPAREN type_name RPAREN {: RESULT = null; :}
+unary_expression ::= postfix_expression:p {: RESULT = p; :}
+    | INCREMENT unary_expression:e {: RESULT = new Absyn.PreIncExp(eleft, ((Absyn.VarExp)e).var); :}
+    | DECREMENT unary_expression:e {: RESULT = new Absyn.PreDecExp(eleft, ((Absyn.VarExp)e).var); :}
+    | unary_operator:o cast_expression:c {: RESULT = new Absyn.UnaryOpExp(oleft, o, c); :}
+    | SIZEOF:s LPAREN type_name:n RPAREN {: RESULT = new Absyn.SizeofUnaryExp(sleft, n); :}
     ;
 
 unary_operator ::= AND | TIMES | PLUS | MINUS | TILDE | NOT;
