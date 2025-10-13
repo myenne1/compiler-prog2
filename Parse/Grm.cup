@@ -29,9 +29,7 @@ parser code  {:
   }
 :};
 
-scan with {: return lexer.nextToken(); :};
-
-
+scan with { return lexer.nextToken(); };
 
 
 // -------------------
@@ -43,11 +41,40 @@ terminal Character CHAR_LITERAL;
 terminal INT, COMMA, COLON, SEMICOLON, LPAREN, RPAREN, LBRACK, RBRACK,
         LBRACE, RBRACE, PLUS, MINUS, TIMES, DIVIDE, EQ, NEQ, LT, LE,
         GT, GE, AND, ASSIGN, IF, ELSE, WHILE, FOR,
-        DO, BREAK, FUN, VAR, VOLATILE, REGISTER, CONTINUE, STATIC,
+         DO, BREAK, VOLATILE, REGISTER, CONTINUE, STATIC,
         SIZEOF, RETURN, EXTERN, CONST, VOID, CHAR,
         RSHIFT, LSHIFT, ARROW, DECREMENT, INCREMENT, TILDE,
-        BWISEOR, BWISEXOR, BWISEAND, MODULUS,
-        ANDAND, OROR, NOT, QUESTION, DOT, LOWER_THAN_ELSE;
+         BWISEOR, BWISEXOR, BWISEAND, MODULUS, VAR, FUN,
+         ANDAND, OROR, NOT, QUESTION, DOT,
+         ADDASSIGN, SUBASSIGN, MULASSIGN, DIVASSIGN, MODASSIGN,
+         LSHIFTASSIGN, RSHIFTASSIGN, BWISEANDASSIGN, BWISEORASSIGN,
+         BWISEXORASSIGN, LOWER_THAN_ELSE;
+
+///
+///Precedence Table
+///
+precedence right ASSIGN, ADDASSIGN, SUBASSIGN, MULASSIGN, DIVASSIGN, MODASSIGN,
+LSHIFTASSIGN, RSHIFTASSIGN, BWISEANDASSIGN, BWISEORASSIGN,
+BWISEXORASSIGN;
+
+precedence left QUESTION;
+precedence left OROR;
+precedence left ANDAND;
+precedence left BWISEOR;
+precedence left BWISEXOR;
+precedence left BWISEAND;
+precedence left EQ, NEQ;
+precedence left LT, LE, GT, GE;
+precedence left LSHIFT, RSHIFT;
+precedence left PLUS, MINUS;
+precedence left TIMES, DIVIDE, MODULUS;
+precedence right NOT, TILDE, AND, SIZEOF;
+
+// The dangling-else solution you already implemented
+precedence nonassoc LOWER_THAN_ELSE;
+
+// Postfix operators have the highest precedence
+precedence left LBRACK, RBRACK, LPAREN, RPAREN, DOT, ARROW, INCREMENT, DECREMENT;
 
 // -------------------
 // Non-terminals
@@ -66,7 +93,10 @@ non terminal String bitfield;
 
 non terminal Absyn.Type type_name;
 non terminal Integer unary_operator;
-non terminal assignment_operator;
+non terminal Integer assignment_operator;
+
+non terminal Absyn.Exp expression_opt;
+non terminal Absyn.Dec declaration_init;
 
 non terminal Absyn.Exp initialization;
 non terminal java.util.List parameters;
@@ -146,8 +176,11 @@ argument_expression_list ::= assignment_expression:e
     ;
 
 // -------------- Declaration & Bitfield -----------------
-declaration ::= VAR bitfield_list:n type:t ID:d initialization:i SEMICOLON {: RESULT = new Absyn.VarDec(nleft, n, t, sym(d), i); :}
-    | FUN bitfield_list:n type:t ID:d parameters:p compound_statement:c {: RESULT = new Absyn.FunctionDec(nleft, n, t, sym(d), p, c); :}
+declaration ::=
+    VAR bitfield_list:n type:t ID:d initialization:i SEMICOLON
+      {: RESULT = new Absyn.VarDec(nleft, n, t, sym(d), i); :}
+  | FUN bitfield_list:n type:t ID:d parameters:p compound_statement:c
+      {: RESULT = new Absyn.FunctionDec(nleft, n, t, sym(d), p, c); :}
     ;
 
 bitfield ::= STATIC   {: RESULT = "static"; :}
@@ -207,6 +240,18 @@ statement_list ::= /* empty */ {: RESULT = new ArrayList<Absyn.Stmt>(); :}
                     l.add(s);
                     RESULT = l;
                 :}
+;
+
+expression_opt ::=
+    expression:e
+    {: RESULT = e; :}
+  |
+    {: RESULT = null; :}
+  ;
+
+declaration_init ::=
+    bitfield_list:n type:t ID:d initialization:i
+    {: RESULT = new Absyn.VarDec(nleft, n, t, sym(d), i); :}
                 ;
 
 statement ::=
@@ -301,7 +346,19 @@ unary_operator ::= AND {: RESULT = Absyn.UnaryOpExp.ADDR; :}
              | NOT {: RESULT = Absyn.UnaryOpExp.NOT; :}
              ;
 
-assignment_operator ::= ASSIGN {: RESULT = 0; :};
+assignment_operator ::=
+    ASSIGN          {: RESULT = Absyn.AssignExp.ASSIGN; :}
+  | ADDASSIGN       {: RESULT = Absyn.AssignExp.ADD; :}
+  | SUBASSIGN       {: RESULT = Absyn.AssignExp.SUB; :}
+  | MULASSIGN       {: RESULT = Absyn.AssignExp.MUL; :}
+  | DIVASSIGN       {: RESULT = Absyn.AssignExp.DIV; :}
+  | MODASSIGN       {: RESULT = Absyn.AssignExp.MOD; :}
+  | LSHIFTASSIGN    {: RESULT = Absyn.AssignExp.LSHIFT; :}
+  | RSHIFTASSIGN    {: RESULT = Absyn.AssignExp.RSHIFT; :}
+  | BWISEANDASSIGN  {: RESULT = Absyn.AssignExp.BWISEAND; :}
+  | BWISEORASSIGN   {: RESULT = Absyn.AssignExp.BWISEOR; :}
+  | BWISEXORASSIGN  {: RESULT = Absyn.AssignExp.BWISEXOR; :}
+  ;
 
 // -------------- Cast -----------------
 cast_expression ::= unary_expression:e {: RESULT = e; :}
@@ -371,9 +428,9 @@ conditional_expression ::= logical_or_expression:e {: RESULT = e; :}
     ;
 assignment_expression ::= conditional_expression:e {: RESULT = e; :}
     | unary_expression:l assignment_operator:o assignment_expression:r
-        {: RESULT = new Absyn.AssignExp(lleft, ((Absyn.VarExp)l).var, r); :}
+        {: RESULT = new Absyn.AssignExp(lleft, ((Absyn.VarExp)l).var, o, r); :}
     ;
-
+    
 expression ::=
     assignment_expression:e    {: RESULT = e; :}
   | expression:l COMMA assignment_expression:r {: RESULT = new Absyn.SeqExp(lleft, l, r); :}
