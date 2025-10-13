@@ -1,5 +1,3 @@
 package Absyn;
 
-public class Stmt extends Absyn{
-    
-}
+public abstract class Stmt extends Absyn { }

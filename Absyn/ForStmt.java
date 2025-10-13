@@ -1,16 +1,17 @@
 package Absyn;
 
-public class ForStmt extends Stmt{
-    public Exp exp1;
-    public Exp exp2;
-    public Exp exp3;
-    public Stmt stmt;
-    public ForStmt(int p, Exp e1, Exp e2, Exp e3, Stmt s) {
-        pos = p;
-        exp1 = e1;
-        exp2 = e2;
-        exp3  = e3;
-        stmt = s;
+public class ForStmt extends Stmt {
+    public Dec initDec;
+    public Exp initExp;
+    public Exp cond;
+    public Exp incr;
+    public Stmt body;
+
+    public ForStmt(int p, Dec d, Exp c, Exp i, Stmt b) {
+        pos = p; initDec = d; initExp = null; cond = c; incr = i; body = b;
     }
-    
+
+    public ForStmt(int p, Exp e, Exp c, Exp i, Stmt b) {
+        pos = p; initDec = null; initExp = e; cond = c; incr = i; body = b;
+    }
 }

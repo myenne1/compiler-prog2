@@ -36,6 +36,49 @@ Yylex(java.io.InputStream s, ErrorMsg e) {
   errorMsg=e;
 }
 
+private String unescapeString(String s) {
+    StringBuilder sb = new StringBuilder();
+    // s is the full text, e.g., "\"hello\\nworld\""
+    // Get the content between the double quotes.
+    String content = s.substring(1, s.length() - 1);
+    for (int i = 0; i < content.length(); i++) {
+        if (content.charAt(i) == '\\' && i + 1 < content.length()) {
+            i++; // Consume the backslash
+            switch (content.charAt(i)) {
+                case 'n': sb.append('\n'); break;
+                case 't': sb.append('\t'); break;
+                case 'r': sb.append('\r'); break;
+                case '"': sb.append('"'); break;
+                case '\\': sb.append('\\'); break;
+                default: sb.append(content.charAt(i));
+            }
+        } else {
+            sb.append(content.charAt(i));
+        }
+    }
+    return sb.toString();
+}
+
+private Character unescapeChar(String s) {
+    // s is the full matched text, e.g., "'\\n'" or "'a'"
+    // Get the content between the single quotes.
+    String content = s.substring(1, s.length() - 1);
+    if (content.charAt(0) == '\\') {
+        // This is an escape sequence.
+        switch (content.charAt(1)) {
+            case 'n': return '\n';
+            case 't': return '\t';
+            case 'r': return '\r';
+            case '\\': return '\\';
+            case '\'': return '\'';
+            default: return content.charAt(1); // For other escapes like \b, \f, etc.
+        }
+    } else {
+        // This is a simple, unescaped character.
+        return content.charAt(0);
+    }
+}
+
 %}
 
 %eofval{
@@ -43,6 +86,7 @@ Yylex(java.io.InputStream s, ErrorMsg e) {
 	 return tok(sym.EOF, null);
         }
 %eofval}       
+
 
 
 %%
@@ -59,7 +103,6 @@ Yylex(java.io.InputStream s, ErrorMsg e) {
 "int"   { return tok(sym.INT, yytext()); }
 "register"    { return tok(sym.REGISTER, yytext()); }
 "return"    { return tok(sym.RETURN, yytext()); }
-"sizeof"    { return tok(sym.SIZEOF, yytext()); }
 "static"    { return tok(sym.STATIC, yytext()); }
 "void"    { return tok(sym.VOID, yytext()); }
 "volatile"    { return tok(sym.VOLATILE, yytext()); }
@@ -75,8 +118,8 @@ Yylex(java.io.InputStream s, ErrorMsg e) {
 [0-9]+                { return tok(sym.DECIMAL_LITERAL, Integer.parseInt(yytext())); }
 
 
-\'([^\\\n]|(\\.))\'        { return tok(sym.CHAR_LITERAL, yytext()); }
-\"([^\\\n]|(\\.))*\"        { return tok(sym.STRING_LITERAL, yytext()); }
+\'([^\\\n]|(\\.))\'      { return tok(sym.CHAR_LITERAL, unescapeChar(yytext())); }
+\"([^\\\n]|(\\.))*\"      { return tok(sym.STRING_LITERAL, unescapeString(yytext())); }
 
 "++"    { return tok(sym.INCREMENT, yytext()); }
 "--"    { return tok(sym.DECREMENT, yytext()); }
@@ -101,6 +144,17 @@ Yylex(java.io.InputStream s, ErrorMsg e) {
 "|"     { return tok(sym.BWISEOR, yytext()); }
 "^"     { return tok(sym.BWISEXOR, yytext()); }
 "~"     { return tok(sym.TILDE, yytext()); }  
+
+"+="    { return tok(sym.ADDASSIGN, yytext()); }
+"-="    { return tok(sym.SUBASSIGN, yytext()); }
+"*="    { return tok(sym.MULASSIGN, yytext()); }
+"/="    { return tok(sym.DIVASSIGN, yytext()); }
+"%="    { return tok(sym.MODASSIGN, yytext()); }
+"<<="   { return tok(sym.LSHIFTASSIGN, yytext()); }
+">>="   { return tok(sym.RSHIFTASSIGN, yytext()); }
+"&="    { return tok(sym.BWISEANDASSIGN, yytext()); }
+"|="    { return tok(sym.BWISEORASSIGN, yytext()); }
+"^="    { return tok(sym.BWISEXORASSIGN, yytext()); }
 
 ";"  { return tok(sym.SEMICOLON, null); }
 ","  { return tok(sym.COMMA, null); }

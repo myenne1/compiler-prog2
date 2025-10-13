@@ -32,6 +32,47 @@ Yylex(java.io.InputStream s, ErrorMsg e) {
   this(s);
   errorMsg=e;
 }
+private String unescapeString(String s) {
+    StringBuilder sb = new StringBuilder();
+    // s is the full text, e.g., "\"hello\\nworld\""
+    // Get the content between the double quotes.
+    String content = s.substring(1, s.length() - 1);
+    for (int i = 0; i < content.length(); i++) {
+        if (content.charAt(i) == '\\' && i + 1 < content.length()) {
+            i++; // Consume the backslash
+            switch (content.charAt(i)) {
+                case 'n': sb.append('\n'); break;
+                case 't': sb.append('\t'); break;
+                case 'r': sb.append('\r'); break;
+                case '"': sb.append('"'); break;
+                case '\\': sb.append('\\'); break;
+                default: sb.append(content.charAt(i));
+            }
+        } else {
+            sb.append(content.charAt(i));
+        }
+    }
+    return sb.toString();
+}
+private Character unescapeChar(String s) {
+    // s is the full matched text, e.g., "'\\n'" or "'a'"
+    // Get the content between the single quotes.
+    String content = s.substring(1, s.length() - 1);
+    if (content.charAt(0) == '\\') {
+        // This is an escape sequence.
+        switch (content.charAt(1)) {
+            case 'n': return '\n';
+            case 't': return '\t';
+            case 'r': return '\r';
+            case '\\': return '\\';
+            case '\'': return '\'';
+            default: return content.charAt(1); // For other escapes like \b, \f, etc.
+        }
+    } else {
+        // This is a simple, unescaped character.
+        return content.charAt(0);
+    }
+}
 	private java.io.BufferedReader yy_reader;
 	private int yy_buffer_index;
 	private int yy_buffer_read;
@@ -281,27 +322,32 @@ private int [][] unpackFromString(int size1, int size2, String st)
 		YY_NO_ANCHOR,
 		YY_NO_ANCHOR,
 		YY_NO_ANCHOR,
-		YY_NOT_ACCEPT,
 		YY_NO_ANCHOR,
 		YY_NO_ANCHOR,
 		YY_NO_ANCHOR,
-		YY_NOT_ACCEPT,
 		YY_NO_ANCHOR,
 		YY_NO_ANCHOR,
-		YY_NOT_ACCEPT,
 		YY_NO_ANCHOR,
 		YY_NO_ANCHOR,
-		YY_NOT_ACCEPT,
 		YY_NO_ANCHOR,
-		YY_NOT_ACCEPT,
-		YY_NO_ANCHOR,
-		YY_NOT_ACCEPT,
 		YY_NO_ANCHOR,
 		YY_NOT_ACCEPT,
 		YY_NO_ANCHOR,
 		YY_NO_ANCHOR,
 		YY_NO_ANCHOR,
+		YY_NOT_ACCEPT,
 		YY_NO_ANCHOR,
+		YY_NO_ANCHOR,
+		YY_NOT_ACCEPT,
+		YY_NO_ANCHOR,
+		YY_NO_ANCHOR,
+		YY_NOT_ACCEPT,
+		YY_NO_ANCHOR,
+		YY_NOT_ACCEPT,
+		YY_NO_ANCHOR,
+		YY_NOT_ACCEPT,
+		YY_NO_ANCHOR,
+		YY_NOT_ACCEPT,
 		YY_NO_ANCHOR,
 		YY_NO_ANCHOR,
 		YY_NO_ANCHOR,
@@ -368,31 +414,32 @@ private int [][] unpackFromString(int size1, int size2, String st)
 		0, 32, 33, 34, 35, 36, 37, 38,
 		39, 40, 26, 41, 42, 26, 43, 44,
 		26, 26, 45, 46, 47, 48, 49, 50,
-		51, 26, 52, 53, 54, 55, 56, 0
+		51, 26, 26, 52, 53, 54, 55, 0
 		
 	};
 	private int yy_rmap[] = {
-		0, 1, 1, 1, 2, 1, 3, 1,
-		1, 1, 4, 1, 5, 1, 6, 7,
-		1, 1, 8, 9, 10, 1, 11, 1,
-		1, 1, 1, 12, 1, 1, 1, 13,
-		1, 1, 1, 1, 14, 15, 1, 1,
-		1, 1, 1, 1, 1, 1, 11, 11,
-		1, 1, 16, 11, 11, 11, 11, 1,
-		11, 11, 11, 11, 11, 11, 11, 11,
-		11, 11, 11, 11, 11, 13, 13, 17,
-		18, 19, 20, 21, 22, 23, 24, 25,
-		26, 27, 28, 16, 29, 30, 31, 32,
-		33, 34, 35, 36, 37, 38, 39, 40,
-		41, 42, 43, 44, 45, 46, 47, 48,
-		49, 50, 51, 52, 53, 54, 55, 56,
-		57, 58, 59, 60, 61, 62, 63, 64,
-		65, 66, 67, 68, 69, 70, 71, 72,
-		73, 74, 75, 76, 77, 78, 79, 80,
-		81, 82, 83 
+		0, 1, 1, 1, 2, 3, 4, 1,
+		1, 5, 6, 1, 7, 1, 8, 9,
+		1, 1, 10, 11, 12, 1, 13, 1,
+		1, 14, 1, 15, 1, 1, 1, 16,
+		1, 1, 1, 1, 1, 1, 1, 1,
+		1, 17, 1, 18, 19, 1, 1, 1,
+		20, 1, 1, 1, 1, 13, 13, 1,
+		1, 1, 21, 1, 1, 13, 13, 13,
+		13, 1, 13, 13, 13, 13, 13, 13,
+		13, 13, 13, 13, 13, 13, 16, 16,
+		22, 23, 24, 25, 26, 27, 28, 29,
+		30, 31, 32, 33, 21, 34, 35, 36,
+		37, 38, 39, 40, 41, 42, 43, 44,
+		45, 46, 47, 48, 49, 50, 51, 52,
+		53, 54, 55, 56, 57, 58, 59, 60,
+		61, 62, 63, 64, 65, 66, 67, 68,
+		69, 70, 71, 72, 73, 74, 75, 76,
+		77, 78, 79, 80, 81, 82, 83, 84
+		
 	};
-	private int yy_nxt[][] = unpackFromString(84,57,
-"1,2,3,4,70,5,6,74,7,8,9,10,11,12,13,14,15,71:2,16,17,18,19,20,21,22:3,23,77,24,25,22,126,114,72,115,99,22:2,75,22:4,135,136,22:2,100,127,22:2,26,27,28,29,-1:79,30,-1:40,32,-1:61,33,-1:58,34,-1:9,35,-1:43,81,-1:4,36,-1:57,37:2,71,-1:8,83,-1:23,83,-1:26,38,39,-1:56,40,-1:56,41,42,-1:49,22:3,-1:6,22:3,-1:4,22:21,-1:58,48,-1:2,69,-1,69:2,31,69:24,73,69:27,36,-1,36:55,-1:16,37:2,71,-1:54,50:3,-1:6,50,-1:6,50:6,-1:35,71:3,-1:54,22:3,-1:6,22:3,-1:4,22:12,46,22:8,-1:4,69,-1,69:55,76,-1,76:27,79,76:27,-1:16,22:3,-1:6,22:3,-1:4,22:5,47,22:5,82,22:9,-1:11,49,-1:86,43,-1:7,44,-1,45,-1:25,22:3,-1:6,22:3,-1:4,22:13,51,22:7,-1:4,76,-1,76:55,-1:16,22:3,-1:6,22:3,-1:4,22:11,52,22:9,-1:4,81:10,85,81:46,-1:16,22:3,-1:6,22:3,-1:4,22:15,53,22:5,-1:20,22:3,-1:6,22:3,-1:4,22:13,54,22:7,-1:4,81:10,85,81:4,55,81:41,-1:16,22:3,-1:6,22:3,-1:4,22:13,56,22:7,-1:20,22:3,-1:6,22:3,-1:4,22:4,57,22:16,-1:20,22:3,-1:6,22:3,-1:4,22:3,58,22:17,-1:20,22:3,-1:6,22:3,-1:4,22:9,59,22:11,-1:20,22:3,-1:6,22:3,-1:4,22:15,60,22:5,-1:20,22:3,-1:6,22:3,-1:4,22:4,61,22:16,-1:20,22:3,-1:6,22:3,-1:4,22:11,62,22:9,-1:20,22:3,-1:6,22:3,-1:4,22:11,63,22:9,-1:20,22:3,-1:6,22:3,-1:4,22:5,64,22:15,-1:20,22:3,-1:6,22:3,-1:4,22:2,65,22:18,-1:20,22:3,-1:6,22:3,-1:4,22:4,66,22:16,-1:20,22:3,-1:6,22:3,-1:4,22:13,67,22:7,-1:20,22:3,-1:6,22:3,-1:4,22:4,68,22:16,-1:20,22:3,-1:6,22:3,-1:4,22:12,78,22:3,80,22:4,-1:20,22:3,-1:6,22:3,-1:4,84,22:11,103,22:8,-1:20,22:3,-1:6,22:3,-1:4,86,22:20,-1:20,22:3,-1:6,22:3,-1:4,22:14,87,22:6,-1:20,22:3,-1:6,22:3,-1:4,22:8,88,22,138,22:10,-1:20,22:3,-1:6,22:3,-1:4,89,22:20,-1:20,22:3,-1:6,22:3,-1:4,22:14,90,132,22:5,-1:20,22:3,-1:6,22:3,-1:4,22:10,91,22:10,-1:20,22:3,-1:6,22:3,-1:4,22:13,92,22:7,-1:20,22:3,-1:6,22:3,-1:4,22:13,93,22:7,-1:20,22:3,-1:6,22:3,-1:4,22:12,94,22:8,-1:20,22:3,-1:6,22:3,-1:4,22:8,95,22:12,-1:20,22:3,-1:6,22:3,-1:4,22:16,96,22:4,-1:20,22:3,-1:6,22:3,-1:4,22:4,97,22:16,-1:20,22:3,-1:6,22:3,-1:4,22:10,98,22:10,-1:20,22:3,-1:6,22:3,-1:4,22:7,101,22:4,117,22:8,-1:20,22:3,-1:6,22:3,-1:4,22:10,102,22:8,128,22,-1:20,22:3,-1:6,22:3,-1:4,22:4,104,22:16,-1:20,22:3,-1:6,22:3,-1:4,22:11,105,22:9,-1:20,22:3,-1:6,22:3,-1:4,22:8,106,22:12,-1:20,22:3,-1:6,22:3,-1:4,22:4,107,22:16,-1:20,22:3,-1:6,22:3,-1:4,22:16,108,22:4,-1:20,22:3,-1:6,22:3,-1:4,22:4,109,22:16,-1:20,22:3,-1:6,22:3,-1:4,22:15,110,22:5,-1:20,22:3,-1:6,22:3,-1:4,22:11,111,22:9,-1:20,22:3,-1:6,22:3,-1:4,22:15,112,22:5,-1:20,22:3,-1:6,22:3,-1:4,22:8,113,22:12,-1:20,22:3,-1:6,22:3,-1:4,22:13,116,22:7,-1:20,22:3,-1:6,22:3,-1:4,22:7,118,22:13,-1:20,22:3,-1:6,22:3,-1:4,22:15,119,22:5,-1:20,22:3,-1:6,22:3,-1:4,22:6,137,22:8,120,22:5,-1:20,22:3,-1:6,22:3,-1:4,22:20,121,-1:20,22:3,-1:6,22:3,-1:4,122,22:20,-1:20,22:3,-1:6,22:3,-1:4,22:8,123,22:12,-1:20,22:3,-1:6,22:3,-1:4,22:14,124,22:6,-1:20,22:3,-1:6,22:3,-1:4,22:15,125,22:5,-1:20,22:3,-1:6,22:3,-1:4,22:4,129,22:16,-1:20,22:3,-1:6,22:3,-1:4,22:8,130,22:6,131,22:5,-1:20,22:3,-1:6,22:3,-1:4,22:8,133,22:12,-1:20,22:3,-1:6,22:3,-1:4,134,22:20,-1:4");
+	private int yy_nxt[][] = unpackFromString(85,56,
+"1,2,3,4,79,5,6,83,7,8,9,10,11,12,13,14,15,80:2,16,17,18,19,20,21,22:3,23,86,24,25,22,132,121,81,122,107,22:2,84,22:4,140,141,22:2,108,133,22,26,27,28,29,-1:78,30,-1:55,32,-1:39,33,-1:15,34,-1:55,35,-1:44,36,-1:10,37,-1:46,38,-1:8,39,40,-1:42,90,-1:4,41,-1:6,42,-1:49,43:2,80,-1:8,92,-1:23,92,-1:25,44,45,-1:55,46,-1:55,47,48,-1:48,22:3,-1:6,22:3,-1:4,22:20,-1:26,52,-1:55,55,-1:30,56,-1:2,78,-1,78:2,31,78:24,82,78:26,41,-1,41:54,-1:16,43:2,80,-1:59,59,-1:55,60,-1:49,58:3,-1:6,58,-1:6,58:6,-1:34,80:3,-1:53,22:3,-1:6,22:3,-1:4,22:12,53,22:7,-1:4,78,-1,78:54,85,-1,85:27,88,85:26,-1:16,22:3,-1:6,22:3,-1:4,22:5,54,22:5,91,22:8,-1:11,57,-1:85,49,-1:7,50,-1,51,-1:24,22:3,-1:6,22:3,-1:4,22:13,61,22:6,-1:4,85,-1,85:54,-1:16,22:3,-1:6,22:3,-1:4,22:11,62,22:8,-1:4,90:10,94,90:45,-1:16,22:3,-1:6,22:3,-1:4,22:15,63,22:4,-1:20,22:3,-1:6,22:3,-1:4,22:13,64,22:6,-1:4,90:10,94,90:4,65,90:40,-1:16,22:3,-1:6,22:3,-1:4,22:13,66,22:6,-1:20,22:3,-1:6,22:3,-1:4,22:4,67,22:15,-1:20,22:3,-1:6,22:3,-1:4,22:3,68,22:16,-1:20,22:3,-1:6,22:3,-1:4,22:9,69,22:10,-1:20,22:3,-1:6,22:3,-1:4,22:15,70,22:4,-1:20,22:3,-1:6,22:3,-1:4,22:4,71,22:15,-1:20,22:3,-1:6,22:3,-1:4,22:11,72,22:8,-1:20,22:3,-1:6,22:3,-1:4,22:11,73,22:8,-1:20,22:3,-1:6,22:3,-1:4,22:2,74,22:17,-1:20,22:3,-1:6,22:3,-1:4,22:4,75,22:15,-1:20,22:3,-1:6,22:3,-1:4,22:13,76,22:6,-1:20,22:3,-1:6,22:3,-1:4,22:4,77,22:15,-1:20,22:3,-1:6,22:3,-1:4,22:12,87,22:3,89,22:3,-1:20,22:3,-1:6,22:3,-1:4,93,22:11,111,22:7,-1:20,22:3,-1:6,22:3,-1:4,95,22:19,-1:20,22:3,-1:6,22:3,-1:4,22:14,96,22:5,-1:20,22:3,-1:6,22:3,-1:4,22:8,97,22,143,22:9,-1:20,22:3,-1:6,22:3,-1:4,98,22:19,-1:20,22:3,-1:6,22:3,-1:4,22:14,99,137,22:4,-1:20,22:3,-1:6,22:3,-1:4,22:10,100,22:9,-1:20,22:3,-1:6,22:3,-1:4,22:13,101,22:6,-1:20,22:3,-1:6,22:3,-1:4,22:13,102,22:6,-1:20,22:3,-1:6,22:3,-1:4,22:8,103,22:11,-1:20,22:3,-1:6,22:3,-1:4,22:16,104,22:3,-1:20,22:3,-1:6,22:3,-1:4,22:4,105,22:15,-1:20,22:3,-1:6,22:3,-1:4,22:10,106,22:9,-1:20,22:3,-1:6,22:3,-1:4,22:7,109,22:4,124,22:7,-1:20,22:3,-1:6,22:3,-1:4,22:10,110,22:8,134,-1:20,22:3,-1:6,22:3,-1:4,22:4,112,22:15,-1:20,22:3,-1:6,22:3,-1:4,22:11,113,22:8,-1:20,22:3,-1:6,22:3,-1:4,22:8,114,22:11,-1:20,22:3,-1:6,22:3,-1:4,22:4,115,22:15,-1:20,22:3,-1:6,22:3,-1:4,22:16,116,22:3,-1:20,22:3,-1:6,22:3,-1:4,22:15,117,22:4,-1:20,22:3,-1:6,22:3,-1:4,22:11,118,22:8,-1:20,22:3,-1:6,22:3,-1:4,22:15,119,22:4,-1:20,22:3,-1:6,22:3,-1:4,22:8,120,22:11,-1:20,22:3,-1:6,22:3,-1:4,22:13,123,22:6,-1:20,22:3,-1:6,22:3,-1:4,22:7,125,22:12,-1:20,22:3,-1:6,22:3,-1:4,22:15,126,22:4,-1:20,22:3,-1:6,22:3,-1:4,22:6,142,22:8,127,22:4,-1:20,22:3,-1:6,22:3,-1:4,128,22:19,-1:20,22:3,-1:6,22:3,-1:4,22:8,129,22:11,-1:20,22:3,-1:6,22:3,-1:4,22:14,130,22:5,-1:20,22:3,-1:6,22:3,-1:4,22:15,131,22:4,-1:20,22:3,-1:6,22:3,-1:4,22:4,135,22:15,-1:20,22:3,-1:6,22:3,-1:4,22:15,136,22:4,-1:20,22:3,-1:6,22:3,-1:4,22:8,138,22:11,-1:20,22:3,-1:6,22:3,-1:4,139,22:19,-1:4");
 	public java_cup.runtime.Symbol nextToken ()
 		throws java.io.IOException {
 		char yy_lookahead;
@@ -565,230 +612,230 @@ private int [][] unpackFromString(int size1, int size2, String st)
 					case -31:
 						break;
 					case 31:
-						{ return tok(sym.STRING_LITERAL, yytext()); }
+						{ return tok(sym.STRING_LITERAL, unescapeString(yytext())); }
 					case -32:
 						break;
 					case 32:
-						{ return tok(sym.ANDAND, yytext()); }
+						{ return tok(sym.MODASSIGN, yytext()); }
 					case -33:
 						break;
 					case 33:
-						{ return tok(sym.INCREMENT, yytext()); }
+						{ return tok(sym.ANDAND, yytext()); }
 					case -34:
 						break;
 					case 34:
-						{ return tok(sym.DECREMENT, yytext()); }
+						{ return tok(sym.BWISEANDASSIGN, yytext()); }
 					case -35:
 						break;
 					case 35:
-						{ return tok(sym.ARROW, null); }
+						{ return tok(sym.MULASSIGN, yytext()); }
 					case -36:
 						break;
 					case 36:
-						{ /* skip single-line comments */ }
+						{ return tok(sym.INCREMENT, yytext()); }
 					case -37:
 						break;
 					case 37:
-						{ return tok(sym.DECIMAL_LITERAL, Integer.parseInt(yytext().substring(1),8)); }
+						{ return tok(sym.ADDASSIGN, yytext()); }
 					case -38:
 						break;
 					case 38:
-						{ return tok(sym.LSHIFT, yytext()); }
+						{ return tok(sym.DECREMENT, yytext()); }
 					case -39:
 						break;
 					case 39:
-						{ return tok(sym.LE, yytext()); }
+						{ return tok(sym.SUBASSIGN, yytext()); }
 					case -40:
 						break;
 					case 40:
-						{ return tok(sym.EQ, yytext()); }
+						{ return tok(sym.ARROW, null); }
 					case -41:
 						break;
 					case 41:
-						{ return tok(sym.GE, yytext()); }
+						{ /* skip single-line comments */ }
 					case -42:
 						break;
 					case 42:
-						{ return tok(sym.RSHIFT, yytext()); }
+						{ return tok(sym.DIVASSIGN, yytext()); }
 					case -43:
 						break;
 					case 43:
-						{}
+						{ return tok(sym.DECIMAL_LITERAL, Integer.parseInt(yytext().substring(1),8)); }
 					case -44:
 						break;
 					case 44:
-						{}
+						{ return tok(sym.LSHIFT, yytext()); }
 					case -45:
 						break;
 					case 45:
-						{}
+						{ return tok(sym.LE, yytext()); }
 					case -46:
 						break;
 					case 46:
-						{ return tok(sym.DO, yytext()); }
+						{ return tok(sym.EQ, yytext()); }
 					case -47:
 						break;
 					case 47:
-						{ return tok(sym.IF, yytext()); }
+						{ return tok(sym.GE, yytext()); }
 					case -48:
 						break;
 					case 48:
-						{ return tok(sym.OROR, yytext()); }
+						{ return tok(sym.RSHIFT, yytext()); }
 					case -49:
 						break;
 					case 49:
-						{ return tok(sym.CHAR_LITERAL, yytext()); }
+						{}
 					case -50:
 						break;
 					case 50:
-						{ return tok(sym.DECIMAL_LITERAL, Integer.parseInt(yytext().substring(2),16)); }
+						{}
 					case -51:
 						break;
 					case 51:
-						{ return tok(sym.FOR, yytext()); }
+						{}
 					case -52:
 						break;
 					case 52:
-						{ return tok(sym.FUN, yytext()); }
+						{ return tok(sym.BWISEXORASSIGN, yytext()); }
 					case -53:
 						break;
 					case 53:
-						{ return tok(sym.INT, yytext()); }
+						{ return tok(sym.DO, yytext()); }
 					case -54:
 						break;
 					case 54:
-						{ return tok(sym.VAR, yytext()); }
+						{ return tok(sym.IF, yytext()); }
 					case -55:
 						break;
 					case 55:
-						{ /* skip block comments */ }
+						{ return tok(sym.BWISEORASSIGN, yytext()); }
 					case -56:
 						break;
 					case 56:
-						{ return tok(sym.CHAR, yytext()); }
+						{ return tok(sym.OROR, yytext()); }
 					case -57:
 						break;
 					case 57:
-						{ return tok(sym.ELSE, yytext()); }
+						{ return tok(sym.CHAR_LITERAL, unescapeChar(yytext())); }
 					case -58:
 						break;
 					case 58:
-						{ return tok(sym.VOID, yytext()); }
+						{ return tok(sym.DECIMAL_LITERAL, Integer.parseInt(yytext().substring(2),16)); }
 					case -59:
 						break;
 					case 59:
-						{return tok(sym.BREAK, yytext());}
+						{ return tok(sym.LSHIFTASSIGN, yytext()); }
 					case -60:
 						break;
 					case 60:
-						{ return tok(sym.CONST, yytext()); }
+						{ return tok(sym.RSHIFTASSIGN, yytext()); }
 					case -61:
 						break;
 					case 61:
-						{ return tok(sym.WHILE, yytext()); }
+						{ return tok(sym.FOR, yytext()); }
 					case -62:
 						break;
 					case 62:
-						{ return tok(sym.EXTERN, yytext()); }
+						{ return tok(sym.FUN, yytext()); }
 					case -63:
 						break;
 					case 63:
-						{ return tok(sym.RETURN, yytext()); }
+						{ return tok(sym.INT, yytext()); }
 					case -64:
 						break;
 					case 64:
-						{ return tok(sym.SIZEOF, yytext()); }
+						{ return tok(sym.VAR, yytext()); }
 					case -65:
 						break;
 					case 65:
-						{ return tok(sym.STATIC, yytext()); }
+						{ /* skip block comments */ }
 					case -66:
 						break;
 					case 66:
-						{ return tok(sym.CONTINUE, yytext()); }
+						{ return tok(sym.CHAR, yytext()); }
 					case -67:
 						break;
 					case 67:
-						{ return tok(sym.REGISTER, yytext()); }
+						{ return tok(sym.ELSE, yytext()); }
 					case -68:
 						break;
 					case 68:
-						{ return tok(sym.VOLATILE, yytext()); }
+						{ return tok(sym.VOID, yytext()); }
 					case -69:
 						break;
-					case 70:
-						{ err("Illegal character: " + yytext()); }
+					case 69:
+						{return tok(sym.BREAK, yytext());}
 					case -70:
 						break;
-					case 71:
-						{ return tok(sym.DECIMAL_LITERAL, Integer.parseInt(yytext())); }
+					case 70:
+						{ return tok(sym.CONST, yytext()); }
 					case -71:
 						break;
-					case 72:
-						{ return tok(sym.ID, yytext()); }
+					case 71:
+						{ return tok(sym.WHILE, yytext()); }
 					case -72:
 						break;
-					case 74:
-						{ err("Illegal character: " + yytext()); }
+					case 72:
+						{ return tok(sym.EXTERN, yytext()); }
 					case -73:
 						break;
-					case 75:
-						{ return tok(sym.ID, yytext()); }
+					case 73:
+						{ return tok(sym.RETURN, yytext()); }
 					case -74:
 						break;
-					case 77:
-						{ err("Illegal character: " + yytext()); }
+					case 74:
+						{ return tok(sym.STATIC, yytext()); }
 					case -75:
 						break;
-					case 78:
-						{ return tok(sym.ID, yytext()); }
+					case 75:
+						{ return tok(sym.CONTINUE, yytext()); }
 					case -76:
 						break;
-					case 80:
-						{ return tok(sym.ID, yytext()); }
+					case 76:
+						{ return tok(sym.REGISTER, yytext()); }
 					case -77:
 						break;
-					case 82:
-						{ return tok(sym.ID, yytext()); }
+					case 77:
+						{ return tok(sym.VOLATILE, yytext()); }
 					case -78:
 						break;
-					case 84:
-						{ return tok(sym.ID, yytext()); }
+					case 79:
+						{ err("Illegal character: " + yytext()); }
 					case -79:
 						break;
-					case 86:
-						{ return tok(sym.ID, yytext()); }
+					case 80:
+						{ return tok(sym.DECIMAL_LITERAL, Integer.parseInt(yytext())); }
 					case -80:
 						break;
-					case 87:
+					case 81:
 						{ return tok(sym.ID, yytext()); }
 					case -81:
 						break;
-					case 88:
-						{ return tok(sym.ID, yytext()); }
+					case 83:
+						{ err("Illegal character: " + yytext()); }
 					case -82:
 						break;
-					case 89:
+					case 84:
 						{ return tok(sym.ID, yytext()); }
 					case -83:
 						break;
-					case 90:
-						{ return tok(sym.ID, yytext()); }
+					case 86:
+						{ err("Illegal character: " + yytext()); }
 					case -84:
 						break;
-					case 91:
+					case 87:
 						{ return tok(sym.ID, yytext()); }
 					case -85:
 						break;
-					case 92:
+					case 89:
 						{ return tok(sym.ID, yytext()); }
 					case -86:
 						break;
-					case 93:
+					case 91:
 						{ return tok(sym.ID, yytext()); }
 					case -87:
 						break;
-					case 94:
+					case 93:
 						{ return tok(sym.ID, yytext()); }
 					case -88:
 						break;
@@ -967,6 +1014,26 @@ private int [][] unpackFromString(int size1, int size2, String st)
 					case 138:
 						{ return tok(sym.ID, yytext()); }
 					case -132:
+						break;
+					case 139:
+						{ return tok(sym.ID, yytext()); }
+					case -133:
+						break;
+					case 140:
+						{ return tok(sym.ID, yytext()); }
+					case -134:
+						break;
+					case 141:
+						{ return tok(sym.ID, yytext()); }
+					case -135:
+						break;
+					case 142:
+						{ return tok(sym.ID, yytext()); }
+					case -136:
+						break;
+					case 143:
+						{ return tok(sym.ID, yytext()); }
+					case -137:
 						break;
 					default:
 						yy_error(YY_E_INTERNAL,false);
