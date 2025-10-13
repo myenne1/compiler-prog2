@@ -1,7 +1,5 @@
 package Parse;
 
-import java.io.PrintWriter;
-
 public class Main {
   public static void main(String argv[]) throws java.io.IOException {
 
@@ -53,33 +51,24 @@ public class Main {
 
 static String symnames[] = new String[100]; 
  static {
-symnames[sym.AUTO] = "AUTO";
+//symnames[sym.AUTO] = "AUTO";
 symnames[sym.BREAK] = "BREAK";
-symnames[sym.CASE] = "CASE";
+//symnames[sym.CASE] = "CASE";
 symnames[sym.CHAR] = "CHAR";
 symnames[sym.CONST] = "CONST";
 symnames[sym.CONTINUE] = "CONTINUE";
-symnames[sym.DEFAULT] = "DEFAULT";
+//symnames[sym.DEFAULT] = "DEFAULT";
 symnames[sym.DO] = "DO";
 symnames[sym.ELSE] = "ELSE";
-symnames[sym.ENUM] = "ENUM";
+//symnames[sym.ENUM] = "ENUM";
 symnames[sym.EXTERN] = "EXTERN";
 symnames[sym.FOR] = "FOR";
-symnames[sym.GOTO] = "GOTO";
 symnames[sym.IF] = "IF";
 symnames[sym.INT] = "INT";
-symnames[sym.LONG] = "LONG";
 symnames[sym.REGISTER] = "REGISTER";
 symnames[sym.RETURN] = "RETURN";
-symnames[sym.SHORT] = "SHORT";
-symnames[sym.SIGNED] = "SIGNED";
 symnames[sym.SIZEOF] = "SIZEOF";
 symnames[sym.STATIC] = "STATIC";
-symnames[sym.STRUCT] = "STRUCT";
-symnames[sym.SWITCH] = "SWITCH";
-symnames[sym.TYPEDEF] = "TYPEDEF";
-symnames[sym.UNION] = "UNION";
-symnames[sym.UNSIGNED] = "UNSIGNED";
 symnames[sym.VOID] = "VOID";
 symnames[sym.VOLATILE] = "VOLATILE";
 symnames[sym.WHILE] = "WHILE";
@@ -105,7 +94,7 @@ symnames[sym.NOT] = "NOT";
 symnames[sym.BWISEAND] = "BITAND";
 symnames[sym.BWISEOR] = "BITOR";
 symnames[sym.BWISEXOR] = "BITXOR";
-symnames[sym.BWISENOT] = "BITNOT";
+//symnames[sym.BWISENOT] = "BITNOT";
 symnames[sym.LSHIFT] = "LSHIFT";
 symnames[sym.RSHIFT] = "RSHIFT";
 symnames[sym.SEMICOLON] = "SEMICOLON";
@@ -120,7 +109,6 @@ symnames[sym.RBRACK] = "RBRACK";
 symnames[sym.LBRACE] = "LBRACE";
 symnames[sym.RBRACE] = "RBRACE";
 symnames[sym.ARROW] = "ARROW";
-symnames[sym.HASH] = "HASH";
 symnames[sym.ID] = "ID";
 symnames[sym.DECIMAL_LITERAL] = "DECIMAL_LITERAL";
 symnames[sym.CHAR_LITERAL] = "CHAR_LITERAL";

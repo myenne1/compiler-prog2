@@ -47,33 +47,20 @@ Yylex(java.io.InputStream s, ErrorMsg e) {
 
 %%
 
-"auto" {return tok(sym.AUTO, yytext());}
 "break" {return tok(sym.BREAK, yytext());}
-"case" {return tok(sym.CASE, yytext());}
 "char"        { return tok(sym.CHAR, yytext()); }
 "const"       { return tok(sym.CONST, yytext()); }
 "continue"    { return tok(sym.CONTINUE, yytext()); }
-"default"   { return tok(sym.DEFAULT, yytext()); }
 "do"    { return tok(sym.DO, yytext()); }
 "else"    { return tok(sym.ELSE, yytext()); }
-"enum"    { return tok(sym.ENUM, yytext()); }
 "extern"    { return tok(sym.EXTERN, yytext()); }
 "for"   { return tok(sym.FOR, yytext()); }
-"goto"    { return tok(sym.GOTO, yytext()); }
 "if"    { return tok(sym.IF, yytext()); }
 "int"   { return tok(sym.INT, yytext()); }
-"long"    { return tok(sym.LONG, yytext()); }
 "register"    { return tok(sym.REGISTER, yytext()); }
 "return"    { return tok(sym.RETURN, yytext()); }
-"short"   { return tok(sym.SHORT, yytext()); }
-"signed"    { return tok(sym.SIGNED, yytext()); }
 "sizeof"    { return tok(sym.SIZEOF, yytext()); }
 "static"    { return tok(sym.STATIC, yytext()); }
-"struct"    { return tok(sym.STRUCT, yytext()); }
-"switch"    { return tok(sym.SWITCH, yytext()); }
-"typedef"   { return tok(sym.TYPEDEF, yytext()); }
-"union"   { return tok(sym.UNION, yytext()); }
-"unsigned"    { return tok(sym.UNSIGNED, yytext()); }
 "void"    { return tok(sym.VOID, yytext()); }
 "volatile"    { return tok(sym.VOLATILE, yytext()); }
 "while"   { return tok(sym.WHILE, yytext()); }
@@ -113,7 +100,7 @@ Yylex(java.io.InputStream s, ErrorMsg e) {
 "&"     { return tok(sym.BWISEAND, yytext()); }
 "|"     { return tok(sym.BWISEOR, yytext()); }
 "^"     { return tok(sym.BWISEXOR, yytext()); }
-"~"     { return tok(sym.BWISENOT, yytext()); }
+"~"     { return tok(sym.TILDE, yytext()); }  
 
 ";"  { return tok(sym.SEMICOLON, null); }
 ","  { return tok(sym.COMMA, null); }
@@ -127,7 +114,6 @@ Yylex(java.io.InputStream s, ErrorMsg e) {
 "{"  { return tok(sym.LBRACE, null); }
 "}"  { return tok(sym.RBRACE, null); }
 "->" { return tok(sym.ARROW, null); }
-"#"  { return tok(sym.HASH, null); }
 
 \n {newline(); } 
 " " {}

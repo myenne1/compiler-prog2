@@ -13,3 +13,13 @@ clean:
 	cp Parse/Yylex* ./.
 	rm -f */*.class Parse/Grm.java Parse/Grm.err Parse/Grm.out Parse/Yylex.java
 	mv Yylex* ./Parse/
+
+supercl: 
+	cp Parse/Yylex* ./.
+	# Remove all class and generated files
+	rm -f Parse/Grm.java Parse/sym.java Parse/Yylex.java Parse/parser.java
+	rm -f Parse/*.class Absyn/*.class Symbol/*.class
+	rm -f Parse/Grm.err Parse/Grm.out *.class
+	rm -f Grm_grammar.dump
+
+.PHONY: all clean
