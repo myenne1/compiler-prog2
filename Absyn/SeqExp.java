@@ -1,5 +1,6 @@
 package Absyn;
+import Symbol.Symbol;
 public class SeqExp extends Exp {
-    public Exp left, right;
-    public SeqExp(int p, Exp l, Exp r) {pos=p; left=l; right=r;}
+   public ExpList list;
+   public SeqExp(int p, ExpList l) {pos=p; list=l;}
 }

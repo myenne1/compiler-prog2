@@ -1,20 +1,14 @@
 package Absyn;
-import java.util.List;
-
 import Symbol.Symbol;
 public class FunctionDec extends Dec {
-  public List<String> bitfields;
-  public Type returnType;
   public Symbol name;
-  public List<Param> params;
-  public CompoundStmt body;
-  public FunctionDec(int p, List<String> b, Type r, Symbol n, List<Param> ps, CompoundStmt bo) {
-    pos = p;
-    bitfields = b;
-    returnType = r;
-    name = n;
-    params = ps;
-    body = bo;
+  public FieldList params;
+  public NameTy result;		/* optional */
+  public Exp body;
+  public FunctionDec next;
+  public FunctionDec(int p, Symbol n, FieldList a, NameTy r, Exp b,
+		     FunctionDec x) {
+    pos=p; name=n; params=a; result=r; body=b; next=x;
   }
-  
+  public boolean leaf = false;
 }

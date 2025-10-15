@@ -1,10 +1,12 @@
 package Parse;
-import Absyn.*;
+import java.io.IOException;
+import java.util.List;
+
 
 public class Parse {
 
   public ErrorMsg.ErrorMsg errorMsg;
-  public DecList absyn;
+  public Absyn.Exp absyn;
 
   public Parse(String filename) {
       errorMsg = new ErrorMsg.ErrorMsg(filename);
@@ -17,7 +19,7 @@ public class Parse {
       Grm parser = new Grm(new Yylex(inp,errorMsg), errorMsg);
       /* open input files, etc. here */
       try {
-	absyn = (DecList)(parser./*debug_*/parse().value);
+	absyn = (Absyn.Exp)(parser./*debug_*/parse().value);
       } catch (Throwable e) {
 	e.printStackTrace();
 	throw new Error(e.toString());
