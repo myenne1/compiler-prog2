@@ -1,10 +1,10 @@
 package Absyn;
 
-public class IfStmt extends Stmt{
+public class IfStmt extends Exp{
     public Exp cond;
-    public Stmt thenPart;
-    public Stmt elsePart;
-    public IfStmt(int p, Exp c, Stmt t, Stmt e) {
+    public Exp thenPart;
+    public Exp elsePart;
+    public IfStmt(int p, Exp c, Exp t, Exp e) {
         pos = p;
         cond = c;
         thenPart = t;

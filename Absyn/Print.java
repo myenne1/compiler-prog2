@@ -1,5 +1,7 @@
 package Absyn;
 
+import java.util.List;
+
 public class Print {
 
   java.io.PrintWriter out;
@@ -87,7 +89,7 @@ public class Print {
     say("IntExp("); say(e.value); say(")");
   }
 
-  void prExp(StringExp e, int d) {
+  void prExp(StrExp e, int d) {
     say("StringExp("); say(e.value); say(")");
   }
 
@@ -103,40 +105,42 @@ public class Print {
 
   void prExp(SeqExp e, int d) {
     sayln("SeqExp(");
-    prExplist(e.list, d+1); say(")");
+    prExp(e.left, d+1); sayln(",");
+    prExp(e.right, d+1); sayln(")");
   }
 
   void prExp(AssignExp e, int d) {
     sayln("AssignExp(");
-    prVar(e.var, d+1); sayln(",");
-    prExp(e.exp, d+1); say(")");
+    prVar(e.left, d+1); sayln(",");
+    prExp(e.right, d+1); say(")");
   }
   
-  void prExp(IfExp e, int d) {
+  void prExp(IfStmt e, int d) {
     sayln("IfExp(");
-    prExp(e.test, d+1); sayln(",");
-    prExp(e.thenclause, d+1);
-    if (e.elseclause!=null) { /* else is optional */
+    prExp(e.cond, d+1); sayln(",");
+    prExp(e.thenPart, d+1);
+    if (e.elsePart!=null) { /* else is optional */
       sayln(",");
-      prExp(e.elseclause, d+1);
+      prExp(e.elsePart, d+1);
     }
     say(")");
   }
 
-  void prExp(WhileExp e, int d) {
+  void prExp(WhileStmt e, int d) {
     sayln("WhileExp(");
-    prExp(e.test, d+1); sayln(",");
+    prExp(e.cond, d+1); sayln(",");
     prExp(e.body, d+1); say(")");
   }
 
-  void prExp(ForExp e, int d) {
-    sayln("ForExp("); 
-    indent(d+1); prDec(e.var, d+1); sayln(",");
-    prExp(e.hi, d+1); sayln(",");
-    prExp(e.body, d+1); say(")");
+  void prExp(ForStmt e, int d) {
+    sayln("ForStmt("); 
+    indent(d + 1); prExp(e.initExp, d + 1); sayln(",");
+    indent(d + 1); prExp(e.cond, d + 1); sayln(",");
+    indent(d + 1); prExp(e.incr, d + 1); sayln(",");
+    indent(d + 1); prExp(e.body, d + 1); say(")");
   }
 
-  void prExp(BreakExp e, int d) {
+  void prExp(BreakStmt e, int d) {
     say("BreakExp()");
   }
 
@@ -146,10 +150,10 @@ public class Print {
     prExp(e.body, d+1); say(")");
   }
 
-  void prExp(ArrayExp e, int d) {
-    say("ArrayExp("); say(e.typ.toString()); sayln(",");
-    prExp(e.size, d+1); sayln(",");
-    prExp(e.init, d+1); say(")");
+  void prExp(ArrayType e, int d) {
+    sayln("ArrayType(");
+    prExp(e.baseType, d + 1); sayln(",");
+    prExp(e.size, d + 1); say(")");
   }
 
   /* Print Exp class types. Indent d spaces. */
@@ -159,41 +163,82 @@ public class Print {
     else if (e instanceof VarExp) prExp((VarExp) e, d);
     else if (e instanceof NilExp) prExp((NilExp) e, d);
     else if (e instanceof IntExp) prExp((IntExp) e, d);
-    else if (e instanceof StringExp) prExp((StringExp) e, d);
+    else if (e instanceof StrExp) prExp((StrExp) e, d);
     else if (e instanceof CallExp) prExp((CallExp) e, d);
     else if (e instanceof RecordExp) prExp((RecordExp) e, d);
     else if (e instanceof SeqExp) prExp((SeqExp) e, d);
     else if (e instanceof AssignExp) prExp((AssignExp) e, d);
-    else if (e instanceof IfExp) prExp((IfExp) e, d);
-    else if (e instanceof WhileExp) prExp((WhileExp) e, d);
-    else if (e instanceof ForExp) prExp((ForExp) e, d);
-    else if (e instanceof BreakExp) prExp((BreakExp) e, d);
+    else if (e instanceof IfStmt) prExp((IfStmt) e, d);
+    else if (e instanceof WhileStmt) prExp((WhileStmt) e, d);
+    else if (e instanceof ForStmt) prExp((ForStmt) e, d);
+    else if (e instanceof BreakStmt) prExp((BreakStmt) e, d);
     else if (e instanceof LetExp) prExp((LetExp) e, d);
-    else if (e instanceof ArrayExp) prExp((ArrayExp) e, d);
+    else if (e instanceof ArrayAccessExp) prExp((ArrayAccessExp) e, d);
     else throw new Error("Print.prExp");
   }
 
-  void prDec(FunctionDec d, int i) {
-    say("FunctionDec(");
-    if (d!=null) {
-      sayln(d.name.toString());
-      prFieldlist(d.params, i+1); sayln(",");
-      if (d.result!=null) {
-	indent(i+1); sayln(d.result.name.toString());
+  void prStmt(CompoundStmt s, int d) {
+    sayln("CompoundStmt(");
+    indent(d + 1); sayln("Declarations(");
+    prDecList(s.decList, d + 2); sayln("),");
+    indent(d + 1); sayln("Statements(");
+    // Assuming a prStmtList method or similar for statement lists
+    // For now, let's just print each statement
+    if (s.stmtList != null) {
+      for (Stmt stmt : s.stmtList) {
+        prStmt(stmt, d + 2); sayln(",");
       }
-      prExp(d.body, i+1); sayln(",");
-      indent(i+1); prDec(d.next, i+1);
     }
-    say(")");
+    indent(d + 1); sayln(")");
+    indent(d); say(")");
   }
+
+  void prStmt(Stmt s, int d) {
+    indent(d);
+    if (s instanceof CompoundStmt) prStmt((CompoundStmt) s, d);
+    // Add other Stmt types here as needed
+    else throw new Error("Print.prStmt");
+  }
+
+  void prDec(FunctionDec d, int i) {
+    sayln("FunctionDec(");
+    indent(i + 1); sayln(d.name.toString() + ",");
+  
+    // Params
+    indent(i + 1); sayln("Params(");
+    for (Param p : d.params) {
+      indent(i + 2); say(p.name.toString());
+      if (p.type != null) {
+        say(": ");
+        printType(p.type, i + 2);
+      }
+      sayln(",");
+    }
+    indent(i + 1); sayln("),");
+
+    // Return type
+    indent(i + 1);
+    if (d.returnType != null && d.returnType.type != null) {
+      say("ReturnType(");
+      printType(d.returnType.type, i + 1);
+      sayln("),");
+    } else {
+      sayln("ReturnType(null),");
+    }
+
+    // Body
+    indent(i + 1);
+    prStmt(d.body, i + 1); sayln("");
+    indent(i); say(")");
+  }
+  
 
   void prDec(VarDec d, int i) {
     say("VarDec("); say(d.name.toString()); sayln(",");
-    if (d.typ!=null) {
-      indent(i+1); say(d.typ.name.toString());  sayln(",");
+    if (d.type != null) {
+      indent(i + 1); printType(d.type, i + 1); sayln(",");
     }
-    prExp(d.init, i+1); sayln(",");
-    indent(i+1); say(d.escape); say(")"); 
+    prExp(d.init, i + 1); say(")");
   }
 
   void prDec(TypeDec d, int i) {
@@ -228,7 +273,7 @@ public class Print {
     say("ArrayTy("); say(t.typ.toString()); say(")");
   }
 
-  void prTy(Ty t, int i) {
+  void prTy(Type t, int i) {
     if (t!=null) {
       indent(i);
       if (t instanceof NameTy) prTy((NameTy) t, i);
@@ -276,6 +321,18 @@ public class Print {
     say(")");
   }
 
+  void prDecList(List<Dec> v, int d) {
+    indent(d);
+    say("DecList(");
+    if (v != null) {
+      sayln("");
+      for (Dec dec : v) {
+        prDec(dec, d + 1); sayln(",");
+      }
+    }
+    say(")");
+  }
+
   void prFieldExpList(FieldExpList f, int d) {
     indent(d);
     say("FieldExpList("); 
@@ -286,5 +343,19 @@ public class Print {
       prFieldExpList(f.tail, d+1);
     }
     say(")");
+  }
+
+  void printType(Type t, int d) {
+    if (t instanceof NameTy) {
+      say("NameTy("); say(((NameTy)t).name.toString()); say(")");
+    } else if (t instanceof ArrayTy) {
+      say("ArrayTy("); say(((ArrayTy)t).typ.toString()); say(")");
+    } else if (t instanceof RecordTy) {
+      sayln("RecordTy(");
+      prFieldlist(((RecordTy)t).fields, d + 1);
+      say(")");
+    } else {
+      say("UnknownType");
+    }
   }
 }

@@ -97,7 +97,7 @@ non terminal Absyn.Dec declaration;
 non terminal Absyn.Type type;
 non terminal java.util.List bitfield_list;
 non terminal String bitfield;
-non terminal Absyn.Type type_name;
+non terminal Absyn.Exp type_name;
 non terminal Integer unary_operator;
 non terminal Integer assignment_operator;
 
@@ -119,12 +119,13 @@ non terminal java.util.List
 non terminal java.util.List
     statement_list;
 
-non terminal Absyn.Dec for_initializer_declaration;
+non terminal Absyn.Exp for_initializer_declaration;
 non terminal Absyn.DecList translation_unit;
 non terminal Absyn.Dec external_declaration;
 
 /* New nonterminals for statement split */
-non terminal Absyn.Stmt Stmt, Matched, Unmatched;
+non terminal Absyn.Stmt Stmt;
+non terminal Absyn.Exp Matched, Unmatched;
 
 /*----------------------
    Grammar directives
@@ -220,7 +221,7 @@ declaration ::=
 
   | /* function */
     FUN bitfield_list:n type:t ID:d parameters:p compound_statement:c
-      {: RESULT = new Absyn.FunctionDec(nleft, n, t, sym(d), p, c); :}
+      {: RESULT = new Absyn.FunctionDec(nleft, n, new Absyn.Param(tleft, new ArrayList<>(), t, null), sym(d), p, c); :}
   ;
 
 for_initializer_declaration ::=
@@ -329,7 +330,7 @@ Matched ::=
   | compound_statement:c
       {: RESULT = c; :}
 
-  | RETURN expression:e SEMICOLON
+  | RETURN expression_opt:e SEMICOLON
       {: RESULT = new Absyn.ReturnStmt(eleft, e); :}
 
   | WHILE LPAREN expression:cond RPAREN Matched:body
@@ -356,7 +357,7 @@ Matched ::=
 
 /* Unmatched: bare if-then and nested else attachments */
 Unmatched ::=
-    IF LPAREN expression:cond RPAREN Stmt:thenStmt
+    IF LPAREN expression:cond RPAREN Unmatched:thenStmt
       {: RESULT = new Absyn.IfStmt(condleft, cond, thenStmt, null); :}
 
   | IF LPAREN expression:cond RPAREN Matched:thenStmt
@@ -368,15 +369,14 @@ Unmatched ::=
 type ::= type_name:t {: RESULT = t; :}
   | type_name:t type_augments:a
         {:
-            Absyn.Type base = t;
+            Absyn.Exp base = t;
             for (int i = a.size() - 1; i >= 0; i--) {
                 Absyn.Type augment = (Absyn.Type)a.get(i);
                 if (augment instanceof Absyn.PointerType) {
-                    ((Absyn.PointerType)augment).baseType = base;
+                    base = ((Absyn.PointerType)augment).wrap(base);
                 } else if (augment instanceof Absyn.ArrayType) {
-                    ((Absyn.ArrayType)augment).baseType = base;
+                    base = ((Absyn.ArrayType)augment).wrap(base);
                 }
-                base = augment;
             }
             RESULT = base;
         :}

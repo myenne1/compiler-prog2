@@ -1,7 +1,7 @@
 package Absyn;
 
 public class ArrayType extends Type{
-    public Type baseType;
+    public Exp baseType;
     public Exp size;
 
     public ArrayType(int p, Exp s) {
@@ -9,7 +9,7 @@ public class ArrayType extends Type{
         size = s;
     }
 
-    public Type wrap(Type base) {
+    public Type wrap(Exp base) {
         this.baseType = base;
         return this;
     }
