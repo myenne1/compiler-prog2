@@ -124,7 +124,8 @@ non terminal Absyn.DecList translation_unit;
 non terminal Absyn.Dec external_declaration;
 
 /* New nonterminals for statement split */
-non terminal Absyn.Stmt Stmt, Matched, Unmatched;
+non terminal Absyn.Stmt Stmt;
+non terminal Absyn.Stmt Matched, Unmatched;
 
 /*----------------------
    Grammar directives
@@ -220,7 +221,7 @@ declaration ::=
 
   | /* function */
     FUN bitfield_list:n type:t ID:d parameters:p compound_statement:c
-      {: RESULT = new Absyn.FunctionDec(nleft, n, t, sym(d), p, c); :}
+      {: RESULT = new Absyn.FunctionDec(nleft, n, new Absyn.Param(tleft, new ArrayList<>(), t, null), sym(d), p, c); :}
   ;
 
 for_initializer_declaration ::=
@@ -329,7 +330,7 @@ Matched ::=
   | compound_statement:c
       {: RESULT = c; :}
 
-  | RETURN expression:e SEMICOLON
+  | RETURN expression_opt:e SEMICOLON
       {: RESULT = new Absyn.ReturnStmt(eleft, e); :}
 
   | WHILE LPAREN expression:cond RPAREN Matched:body
@@ -347,7 +348,7 @@ Matched ::=
       {: RESULT = new Absyn.DoWhileStmt(body.pos, body, cond); :}
 
   | BREAK:b SEMICOLON
-      {: RESULT = new Absyn.BreakStmt(bleft); :}
+      {: RESULT = new Absyn.BreakStmt(); :}
 
   | CONTINUE:c SEMICOLON
       {: RESULT = new Absyn.ContinueStmt(cleft); :}
@@ -356,7 +357,7 @@ Matched ::=
 
 /* Unmatched: bare if-then and nested else attachments */
 Unmatched ::=
-    IF LPAREN expression:cond RPAREN Stmt:thenStmt
+    IF LPAREN expression:cond RPAREN Unmatched:thenStmt
       {: RESULT = new Absyn.IfStmt(condleft, cond, thenStmt, null); :}
 
   | IF LPAREN expression:cond RPAREN Matched:thenStmt
@@ -372,11 +373,10 @@ type ::= type_name:t {: RESULT = t; :}
             for (int i = a.size() - 1; i >= 0; i--) {
                 Absyn.Type augment = (Absyn.Type)a.get(i);
                 if (augment instanceof Absyn.PointerType) {
-                    ((Absyn.PointerType)augment).baseType = base;
+                    base = ((Absyn.PointerType)augment).wrap(base);
                 } else if (augment instanceof Absyn.ArrayType) {
-                    ((Absyn.ArrayType)augment).baseType = base;
+                    base = ((Absyn.ArrayType)augment).wrap(base);
                 }
-                base = augment;
             }
             RESULT = base;
         :}
