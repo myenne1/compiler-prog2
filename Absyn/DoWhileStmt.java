@@ -1,6 +1,6 @@
 package Absyn;
 
-import Absyn.Exp;   // add this
+import Absyn.Exp;   
 
 public class DoWhileStmt extends Stmt {
     public Stmt stmt;
