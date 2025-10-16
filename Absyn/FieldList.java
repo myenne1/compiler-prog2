@@ -3,6 +3,7 @@ package Absyn;
 import Symbol.Symbol;
 
 public class FieldList {
+    public int pos;
     public Symbol name;
     public Symbol typ;
     public boolean escape;

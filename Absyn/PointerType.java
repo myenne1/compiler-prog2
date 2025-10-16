@@ -1,12 +1,12 @@
 package Absyn;
 
-public class PointerType extends Exp{
-    public Exp baseType;
+public class PointerType extends Type{
+    public Type baseType;
     public PointerType(int p) {
         pos = p;
     }
 
-    public Exp wrap(Exp base) {
+    public Type wrap(Type base) {
         this.baseType = base;
         return this;
     }

@@ -97,7 +97,7 @@ non terminal Absyn.Dec declaration;
 non terminal Absyn.Type type;
 non terminal java.util.List bitfield_list;
 non terminal String bitfield;
-non terminal Absyn.Exp type_name;
+non terminal Absyn.Type type_name;
 non terminal Integer unary_operator;
 non terminal Integer assignment_operator;
 
@@ -119,13 +119,13 @@ non terminal java.util.List
 non terminal java.util.List
     statement_list;
 
-non terminal Absyn.Exp for_initializer_declaration;
+non terminal Absyn.Dec for_initializer_declaration;
 non terminal Absyn.DecList translation_unit;
 non terminal Absyn.Dec external_declaration;
 
 /* New nonterminals for statement split */
 non terminal Absyn.Stmt Stmt;
-non terminal Absyn.Exp Matched, Unmatched;
+non terminal Absyn.Stmt Matched, Unmatched;
 
 /*----------------------
    Grammar directives
@@ -348,7 +348,7 @@ Matched ::=
       {: RESULT = new Absyn.DoWhileStmt(body.pos, body, cond); :}
 
   | BREAK:b SEMICOLON
-      {: RESULT = new Absyn.BreakStmt(bleft); :}
+      {: RESULT = new Absyn.BreakStmt(); :}
 
   | CONTINUE:c SEMICOLON
       {: RESULT = new Absyn.ContinueStmt(cleft); :}
@@ -369,7 +369,7 @@ Unmatched ::=
 type ::= type_name:t {: RESULT = t; :}
   | type_name:t type_augments:a
         {:
-            Absyn.Exp base = t;
+            Absyn.Type base = t;
             for (int i = a.size() - 1; i >= 0; i--) {
                 Absyn.Type augment = (Absyn.Type)a.get(i);
                 if (augment instanceof Absyn.PointerType) {

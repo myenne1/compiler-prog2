@@ -115,45 +115,10 @@ public class Print {
     prExp(e.right, d+1); say(")");
   }
   
-  void prExp(IfStmt e, int d) {
-    sayln("IfExp(");
-    prExp(e.cond, d+1); sayln(",");
-    prExp(e.thenPart, d+1);
-    if (e.elsePart!=null) { /* else is optional */
-      sayln(",");
-      prExp(e.elsePart, d+1);
-    }
-    say(")");
-  }
-
-  void prExp(WhileStmt e, int d) {
-    sayln("WhileExp(");
-    prExp(e.cond, d+1); sayln(",");
-    prExp(e.body, d+1); say(")");
-  }
-
-  void prExp(ForStmt e, int d) {
-    sayln("ForStmt("); 
-    indent(d + 1); prExp(e.initExp, d + 1); sayln(",");
-    indent(d + 1); prExp(e.cond, d + 1); sayln(",");
-    indent(d + 1); prExp(e.incr, d + 1); sayln(",");
-    indent(d + 1); prExp(e.body, d + 1); say(")");
-  }
-
-  void prExp(BreakStmt e, int d) {
-    say("BreakExp()");
-  }
-
   void prExp(LetExp e, int d) {
     say("LetExp("); sayln("");
     prDecList(e.decs, d+1); sayln(",");
     prExp(e.body, d+1); say(")");
-  }
-
-  void prExp(ArrayType e, int d) {
-    sayln("ArrayType(");
-    prExp(e.baseType, d + 1); sayln(",");
-    prExp(e.size, d + 1); say(")");
   }
 
   /* Print Exp class types. Indent d spaces. */
@@ -168,13 +133,38 @@ public class Print {
     else if (e instanceof RecordExp) prExp((RecordExp) e, d);
     else if (e instanceof SeqExp) prExp((SeqExp) e, d);
     else if (e instanceof AssignExp) prExp((AssignExp) e, d);
-    else if (e instanceof IfStmt) prExp((IfStmt) e, d);
-    else if (e instanceof WhileStmt) prExp((WhileStmt) e, d);
-    else if (e instanceof ForStmt) prExp((ForStmt) e, d);
-    else if (e instanceof BreakStmt) prExp((BreakStmt) e, d);
     else if (e instanceof LetExp) prExp((LetExp) e, d);
     else if (e instanceof ArrayAccessExp) prExp((ArrayAccessExp) e, d);
     else throw new Error("Print.prExp");
+  }
+
+  void prStmt(IfStmt e, int d) {
+    sayln("IfExp(");
+    prExp(e.cond, d+1); sayln(",");
+    prStmt(e.thenPart, d+1);
+    if (e.elsePart!=null) { /* else is optional */
+      sayln(",");
+      prStmt(e.elsePart, d+1);
+    }
+    say(")");
+  }
+
+  void prStmt(WhileStmt e, int d) {
+    sayln("WhileExp(");
+    prExp(e.cond, d+1); sayln(",");
+    prStmt(e.body, d+1); say(")");
+  }
+
+  void prStmt(ForStmt e, int d) {
+    sayln("ForStmt("); 
+    indent(d + 1); prExp(e.initExp, d + 1); sayln(",");
+    indent(d + 1); prExp(e.cond, d + 1); sayln(",");
+    indent(d + 1); prExp(e.incr, d + 1); sayln(",");
+    indent(d + 1); prStmt(e.body, d + 1); say(")");
+  }
+
+  void prStmt(BreakStmt e, int d) {
+    say("BreakExp()");
   }
 
   void prStmt(CompoundStmt s, int d) {
@@ -196,6 +186,10 @@ public class Print {
   void prStmt(Stmt s, int d) {
     indent(d);
     if (s instanceof CompoundStmt) prStmt((CompoundStmt) s, d);
+    else if (s instanceof IfStmt) prStmt((IfStmt) s, d);
+    else if (s instanceof WhileStmt) prStmt((WhileStmt) s, d);
+    else if (s instanceof ForStmt) prStmt((ForStmt) s, d);
+    else if (s instanceof BreakStmt) prStmt((BreakStmt) s, d);
     // Add other Stmt types here as needed
     else throw new Error("Print.prStmt");
   }

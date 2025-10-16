@@ -1,6 +1,6 @@
 package Absyn;
 
-public class BreakStmt extends Exp{
+public class BreakStmt extends Stmt{
     public BreakStmt() {
     }
     

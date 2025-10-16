@@ -1,9 +1,9 @@
 package Absyn;
 
-public class WhileStmt extends Exp {
+public class WhileStmt extends Stmt {
     public Exp cond;
-    public Exp body;
-    public WhileStmt(int p, Exp c, Exp b) {
+    public Stmt body;
+    public WhileStmt(int p, Exp c, Stmt b) {
         pos = p;
         cond = c;
         body = b;
