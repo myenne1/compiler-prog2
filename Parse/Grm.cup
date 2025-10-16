@@ -138,8 +138,6 @@ start with translation_unit;
 /*========================
      Grammar Productions
 =========================*/
-
-/* Translation unit and top-level declarations */
 translation_unit ::=
     external_declaration:d
       {: RESULT = new Absyn.DecList(d, null); :}
@@ -152,7 +150,6 @@ external_declaration ::=
       {: RESULT = d; :}
   ;
 
-/* Primary expressions */
 primary_expression ::=
     error:e
       {: RESULT = new Absyn.ErrorExp(eleft); :}
@@ -168,7 +165,6 @@ primary_expression ::=
       {: RESULT = e; :}
   ;
 
-/* Postfix expressions */
 postfix_expression ::=
     primary_expression:e {: RESULT = e; :}
   | postfix_expression:p LBRACK expression:e RBRACK
@@ -189,7 +185,6 @@ postfix_expression ::=
         ); :}
   ;
 
-/* Argument lists */
 argument_expression_list_opt ::=
     /* empty */ {: RESULT = null; :}
   | argument_expression_list:e {: RESULT = e; :}
@@ -209,7 +204,6 @@ argument_expression_list ::=
       :}
   ;
 
-/* Declarations */
 declaration ::=
     /* var without initializer */
     VAR bitfield_list:n type:t ID:d SEMICOLON
@@ -234,7 +228,6 @@ for_initializer_declaration ::=
       {: RESULT = new Absyn.VarDec(nleft, n, t, sym(d), null); :}
   ;
 
-/* Bitfields */
 bitfield ::=
     STATIC   {: RESULT = "static"; :}
   | VOLATILE {: RESULT = "volatile"; :}
@@ -252,7 +245,6 @@ bitfield_list ::=
       :}
   ;
 
-/* Parameters */
 parameters ::=
     LPAREN RPAREN {: RESULT = new ArrayList<Absyn.Param>(); :}
   | LPAREN parameter_list:p RPAREN {: RESULT = p; :}
@@ -277,7 +269,6 @@ parameter ::=
       {: RESULT = new Absyn.Param(nleft, b, t, sym(n)); :}
   ;
 
-/* Compound statements */
 compound_statement ::=
     LBRACE declaration_list:d statement_list:s RBRACE
       {: RESULT = new Absyn.CompoundStmt(dleft, d, s); :}
@@ -292,7 +283,6 @@ declaration_list ::=
       :}
   ;
 
-/* Statement lists use Stmt */
 statement_list ::=
     /* empty */ {: RESULT = new ArrayList<Absyn.Stmt>(); :}
   | statement_list:l Stmt:s
@@ -302,7 +292,6 @@ statement_list ::=
       :}
   ;
 
-/* Optional expression */
 expression_opt ::=
     expression:e {: RESULT = e; :}
   | {: RESULT = null; :}
@@ -312,13 +301,11 @@ expression_opt ::=
   Statement grammar
 ======================*/
 
-/* Top-level statement */
 Stmt ::=
     Matched
   | Unmatched
   ;
 
-/* Matched: fully paired if-then-else + other statements */
 Matched ::=
     IF LPAREN expression:cond RPAREN Matched:thenStmt
       ELSE Matched:elseStmt
@@ -336,11 +323,9 @@ Matched ::=
   | WHILE LPAREN expression:cond RPAREN Matched:body
       {: RESULT = new Absyn.WhileStmt(condleft, cond, body); :}
 
-  /* FOR with declaration initializer (Corrected) */
   | FOR LPAREN for_initializer_declaration:dInit SEMICOLON expression_opt:e2 SEMICOLON expression_opt:e3 RPAREN Matched:forBody
       {: RESULT = new Absyn.ForStmt(dInit.pos, dInit, e2, e3, forBody); :}
 
-  /* FOR with expression initializer */
   | FOR LPAREN expression_opt:e1 SEMICOLON expression_opt:e2 SEMICOLON expression_opt:e3 RPAREN Matched:forBody
       {: RESULT = new Absyn.ForStmt(e1left, e1, e2, e3, forBody); :}
 
@@ -355,7 +340,6 @@ Matched ::=
   ;
 
 
-/* Unmatched: bare if-then and nested else attachments */
 Unmatched ::=
     IF LPAREN expression:cond RPAREN Unmatched:thenStmt
       {: RESULT = new Absyn.IfStmt(condleft, cond, thenStmt, null); :}
@@ -365,7 +349,6 @@ Unmatched ::=
       {: RESULT = new Absyn.IfStmt(condleft, cond, thenStmt, elseStmt); :}
   ;
 
-/* Types and expressions unchanged... */
 type ::= type_name:t {: RESULT = t; :}
   | type_name:t type_augments:a
         {:
@@ -407,8 +390,6 @@ type_augment ::= TIMES:t
                | LBRACK:t expression:e RBRACK
                {: RESULT = new Absyn.ArrayType(tleft, e); :}
                ;
-
-/* Unary through assignment_expression unchanged... */
 
 unary_expression ::= postfix_expression:p {: RESULT = p; :}
     | INCREMENT unary_expression:e {: RESULT = new Absyn.PreIncExp(eleft, ((Absyn.VarExp)e).var); :}
