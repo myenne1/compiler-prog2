@@ -1,23 +1,16 @@
 Project Members: Muhanad Yennes, Marco Garcia, and Kaden Casey
 
-For this project we used AI to create the list for all of the identifiers and operators to include in order to be 
-able to identify them in the lexer. Comments, strings, and white spaces are skipped during parsing.
+For this project we used AI to split the grammar rules needed to be implemented into sections.
+We also used it to create the nonterminals needed for each grammar rule.
 
-Handling:
+Muhanad: Worked on creating the structure for Grm.cup with necessary grammar rules and made Absyn files.
+Kaden: Worked on Absyn files for expressions, and assignments.
+Marco: Worked on Absyn files for statement grammar and constructed the Print.java.
 
-    Decimal Literals:
-    - Hex: If a number starts with 0x or 0X we treat it as base-16
-    - Octal: If a number starts with just 0 and not a following 'x' we treat as base-8
-    - Decimal: If no leading 0 and just numbers '123' we treat as base-10
+We implemented all grammar rules up to the unary section, including support for pointer types like int*** 
+and arrays like int[][]. We ended up using a wrapping method to build up types in the correct ordering. For unary expressions, 
+we made sure that ++ and -- only work on variables so that things like ++5 don’t cause problems. We don't have any reduce/reduce conflicts, and the 
+shift/reduce conflicts that did show up were expected as the limit is still 3.
 
-    Char and String Literals:
-    - chars: a single character inside single quotes gets picked up as a char literal. Also allowed escaped characters '\n' '\\'
-    - Strings: Anything inside double quotes is counted as a string literal "hello"
-
-    Whitespaces: 
-    - Newlines: When we see '\n' we call newline() function
-    - Spaces, tabs, etc.: ignored individually 
-    
-    Comments:
-    - if '//' is detected, everything after it is skipped
-    - anything between /* and */ are skipped
+We couldn't get the Print.java absyn file working correctly and couldn't get the output to show a parse tree with all of the correct indentations.
+Instead, the output shows a list of tokens registered from the test.c file along with some nonterminals it comes across when reading an ID token.
