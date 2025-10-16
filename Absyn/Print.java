@@ -45,7 +45,6 @@ public class Print {
     prExp(v.index, d+1); say(")");
   }
 
-  /* Print A_var types. Indent d spaces. */
   void prVar(Var v, int d) {
     indent(d);
     if (v instanceof SimpleVar) prVar((SimpleVar) v, d);
@@ -121,7 +120,6 @@ public class Print {
     prExp(e.body, d+1); say(")");
   }
 
-  /* Print Exp class types. Indent d spaces. */
   public void prExp(Exp e, int d) {
     indent(d);
     if (e instanceof OpExp) prExp((OpExp)e, d);
@@ -142,7 +140,7 @@ public class Print {
     sayln("IfExp(");
     prExp(e.cond, d+1); sayln(",");
     prStmt(e.thenPart, d+1);
-    if (e.elsePart!=null) { /* else is optional */
+    if (e.elsePart!=null) { 
       sayln(",");
       prStmt(e.elsePart, d+1);
     }
@@ -172,8 +170,6 @@ public class Print {
     indent(d + 1); sayln("Declarations(");
     prDecList(s.decList, d + 2); sayln("),");
     indent(d + 1); sayln("Statements(");
-    // Assuming a prStmtList method or similar for statement lists
-    // For now, let's just print each statement
     if (s.stmtList != null) {
       for (Stmt stmt : s.stmtList) {
         prStmt(stmt, d + 2); sayln(",");
@@ -190,7 +186,6 @@ public class Print {
     else if (s instanceof WhileStmt) prStmt((WhileStmt) s, d);
     else if (s instanceof ForStmt) prStmt((ForStmt) s, d);
     else if (s instanceof BreakStmt) prStmt((BreakStmt) s, d);
-    // Add other Stmt types here as needed
     else throw new Error("Print.prStmt");
   }
 
@@ -198,7 +193,6 @@ public class Print {
     sayln("FunctionDec(");
     indent(i + 1); sayln(d.name.toString() + ",");
   
-    // Params
     indent(i + 1); sayln("Params(");
     for (Param p : d.params) {
       indent(i + 2); say(p.name.toString());
@@ -210,7 +204,6 @@ public class Print {
     }
     indent(i + 1); sayln("),");
 
-    // Return type
     indent(i + 1);
     if (d.returnType != null && d.returnType.type != null) {
       say("ReturnType(");
@@ -220,7 +213,6 @@ public class Print {
       sayln("ReturnType(null),");
     }
 
-    // Body
     indent(i + 1);
     prStmt(d.body, i + 1); sayln("");
     indent(i); say(")");
